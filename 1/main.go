@@ -25,7 +25,11 @@ func main() {
 		// https://adventofcode.com/2019/day/1
 		// Specifically, to find the fuel required for a module, take its mass,
 		// divide by three, round down, and subtract 2.
-		sum += compute(mass)
+		fuel := compute(mass)
+		sum += fuel
+
+		// https://adventofcode.com/2019/day/1#part2
+		sum += fuelCompute(fuel)
 	}
 	fmt.Println(sum)
 
@@ -33,6 +37,16 @@ func main() {
 	//fmt.Println(compute(14))
 	//fmt.Println(compute(1969))
 	//fmt.Println(compute(100756))
+
+	//fmt.Println(fuelCompute(654))
+}
+
+func fuelCompute(mass int) int {
+	additionalFuel := compute(mass)
+	if additionalFuel <= 0 {
+		return 0
+	}
+	return additionalFuel + fuelCompute(additionalFuel)
 }
 
 func compute(n int) int {

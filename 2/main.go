@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"strconv"
 	"strings"
 )
@@ -9,10 +10,10 @@ import (
 func main() {
 	fmt.Println("Parsing...")
 	// Import.
-	//bytes, _ := ioutil.ReadFile("input.txt")
+	bytes, _ := ioutil.ReadFile("input.txt")
 
 	// For testing, see https://adventofcode.com/2019/day/2.
-	bytes := []byte("1,9,10,3,2,3,11,0,99,30,40,50")
+	//bytes := []byte("1,9,10,3,2,3,11,0,99,30,40,50")
 
 	lines := strings.Split(string(bytes), ",")
 	var memory []int

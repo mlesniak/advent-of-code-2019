@@ -8,23 +8,16 @@ import (
 )
 
 func main() {
-	fmt.Println("Parsing...")
-	// Import.
-	bytes, _ := ioutil.ReadFile("input.txt")
+	memory := load()
+	compute(memory)
+	showResult(memory)
+}
 
-	// For testing, see https://adventofcode.com/2019/day/2.
-	//bytes := []byte("1,9,10,3,2,3,11,0,99,30,40,50")
+func showResult(memory []int) {
+	fmt.Println(memory[0])
+}
 
-	lines := strings.Split(string(bytes), ",")
-	var memory []int
-	for _, val := range lines {
-		i, _ := strconv.Atoi(val)
-		memory = append(memory, i)
-	}
-	fmt.Println(memory)
-
-	// Process.
-	fmt.Println("Computing...")
+func compute(memory []int) {
 	for i := 0; i < len(memory); i += 4 {
 		switch memory[i] {
 		case 1:
@@ -35,7 +28,18 @@ func main() {
 			break
 		}
 	}
+}
 
-	fmt.Println("Result")
-	fmt.Println(memory[0])
+func load() []int {
+	// Import.
+	bytes, _ := ioutil.ReadFile("input.txt")
+	// For testing, see https://adventofcode.com/2019/day/2.
+	//bytes := []byte("1,9,10,3,2,3,11,0,99,30,40,50")
+	lines := strings.Split(string(bytes), ",")
+	var memory []int
+	for _, val := range lines {
+		i, _ := strconv.Atoi(val)
+		memory = append(memory, i)
+	}
+	return memory
 }

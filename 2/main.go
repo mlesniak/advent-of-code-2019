@@ -3,14 +3,39 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"math"
 	"strconv"
 	"strings"
 )
 
 func main() {
-	memory := load()
-	compute(memory)
-	showResult(memory)
+	// Part 1.
+	//memory := load()
+	//compute(memory)
+	//showResult(memory)
+
+	// Part 2.
+	result := math.MaxInt64
+	const goal = 19690720
+loop:
+	for noun := 0; noun < 100; noun++ {
+		for verb := 0; verb < 100; verb++ {
+			fmt.Println(noun, verb)
+			memory := load()
+			memory[1] = noun
+			memory[2] = verb
+			compute(memory)
+			if memory[0] == goal {
+				result = 100*noun + verb
+				break loop
+			}
+		}
+	}
+	if result == math.MaxInt64 {
+		fmt.Println("Probably no solution found, code buggy?")
+	} else {
+		fmt.Println(result)
+	}
 }
 
 func showResult(memory []int) {

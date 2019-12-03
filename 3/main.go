@@ -87,7 +87,7 @@ func simulate(plane plane, origin coordinate, wire wire, id int) {
 		case "R":
 			for i := 0; i < command.steps; i++ {
 				ox++
-				if plane[oy][ox] != 0 {
+				if plane[oy][ox] != 0 && plane[oy][ox] != id {
 					// There is already a wire. Mark this.
 					plane[oy][ox] = -1
 				} else {
@@ -97,7 +97,7 @@ func simulate(plane plane, origin coordinate, wire wire, id int) {
 		case "U":
 			for i := 0; i < command.steps; i++ {
 				oy--
-				if plane[oy][ox] != 0 {
+				if plane[oy][ox] != 0 && plane[oy][ox] != id {
 					// There is already a wire. Mark this.
 					plane[oy][ox] = -1
 				} else {
@@ -107,7 +107,7 @@ func simulate(plane plane, origin coordinate, wire wire, id int) {
 		case "L":
 			for i := 0; i < command.steps; i++ {
 				ox--
-				if plane[oy][ox] != 0 {
+				if plane[oy][ox] != 0 && plane[oy][ox] != id {
 					// There is already a wire. Mark this.
 					plane[oy][ox] = -1
 				} else {
@@ -117,7 +117,7 @@ func simulate(plane plane, origin coordinate, wire wire, id int) {
 		case "D":
 			for i := 0; i < command.steps; i++ {
 				oy++
-				if plane[oy][ox] != 0 {
+				if plane[oy][ox] != 0 && plane[oy][ox] != id {
 					// There is already a wire. Mark this.
 					plane[oy][ox] = -1
 				} else {

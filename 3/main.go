@@ -25,6 +25,9 @@ type coordinate struct {
 func main() {
 	wires := load()
 	size := computeMaxSize(wires)
+
+	// IDEA Instead of using a 2D array we could have also used a map with just the 'wired' coordinates to reduce
+	// 		memory usage, since most cells are unused. Nevertheless, the current solution works for now.
 	plane := allocatePlane(size)
 
 	// map. intersection -> distance for each wire

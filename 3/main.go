@@ -23,8 +23,8 @@ type coordinate struct {
 
 func main() {
 	// TODO We could add up all single R, L, U, and Ds to find possible maximal dimensions?
-	const size = 10000
 	wires := load()
+	size := computeMaxSize(wires)
 	plane := allocatePlane(size)
 
 	// Simulate wires.
@@ -36,6 +36,30 @@ func main() {
 	// Find all intersections, find minimum manhattan distance to origin.
 	cuts := findIntersections(plane)
 	findMinimumDistance(cuts, origin)
+}
+
+func computeMaxSize(wires []wire) int {
+	// Maximal distance in one direction.
+	maxDistance := 0
+
+	commands := []string{"R", "L", "D", "U"}
+	for _, command := range commands {
+		for _, wire := range wires {
+			pathLength := 0
+			// Single wire.
+			for _, sc := range wire {
+				if sc.direction == command {
+					pathLength += sc.steps
+				}
+			}
+			if maxDistance < pathLength {
+				maxDistance = pathLength
+			}
+		}
+	}
+
+	log.Printf("Maximal distance %d\n", maxDistance)
+	return maxDistance
 }
 
 func findMinimumDistance(cuts []coordinate, origin coordinate) {

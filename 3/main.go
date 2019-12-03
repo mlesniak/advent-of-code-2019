@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"math"
@@ -22,15 +23,26 @@ type coordinate struct {
 }
 
 func main() {
-	// TODO We could add up all single R, L, U, and Ds to find possible maximal dimensions?
 	wires := load()
 	size := computeMaxSize(wires)
 	plane := allocatePlane(size)
 
+	// map. intersection -> distance for each wire
+	distances := make(map[coordinate]map[int]int)
+
 	// Simulate wires.
 	origin := initializeOrigin(plane)
 	for id, wire := range wires {
-		simulate(plane, origin, wire, id+1)
+		simulate(plane, origin, wire, id+1, distances)
+	}
+	// Restart first wire to find cuts with the following ones for correct distance computation.
+	simulate(plane, origin, wires[0], 1, distances)
+
+	for k, v := range distances {
+		log.Printf("Cut %v\n", k)
+		for id, steps := range v {
+			log.Printf("  %d -> %d\n", id, steps)
+		}
 	}
 
 	// Find all intersections, find minimum manhattan distance to origin.
@@ -57,6 +69,9 @@ func computeMaxSize(wires []wire) int {
 			}
 		}
 	}
+
+	// Origin is in the center of the rectangle.
+	maxDistance *= 2 + 1
 
 	log.Printf("Maximal distance %d\n", maxDistance)
 	return maxDistance
@@ -99,21 +114,22 @@ func findIntersections(plane plane) []coordinate {
 	return cs
 }
 
-func simulate(plane plane, origin coordinate, wire wire, id int) {
+func simulate(plane plane, origin coordinate, wire wire, id int, cutSteps map[coordinate]map[int]int) {
 	ox := origin.x
 	oy := origin.y
 
 	log.Printf("wire=%v\n", wire)
-	// "Paint" plane with 1, if a cable is at position,
-	// and with a 2 if it intersects an existing cable.
+	steps := 0
 	for _, command := range wire {
+		steps += command.steps
 		switch command.direction {
 		case "R":
 			for i := 0; i < command.steps; i++ {
 				ox++
 				if plane[oy][ox] != 0 && plane[oy][ox] != id {
-					// There is already a wire. Mark this.
+					// There is already a wire. Mark this as a cut.
 					plane[oy][ox] = -1
+					addStepsToGlobalCuts(ox, oy, cutSteps, id, steps)
 				} else {
 					plane[oy][ox] = id
 				}
@@ -122,8 +138,9 @@ func simulate(plane plane, origin coordinate, wire wire, id int) {
 			for i := 0; i < command.steps; i++ {
 				oy--
 				if plane[oy][ox] != 0 && plane[oy][ox] != id {
-					// There is already a wire. Mark this.
+					// There is already a wire. Mark this as a cut.
 					plane[oy][ox] = -1
+					addStepsToGlobalCuts(ox, oy, cutSteps, id, steps)
 				} else {
 					plane[oy][ox] = id
 				}
@@ -132,8 +149,9 @@ func simulate(plane plane, origin coordinate, wire wire, id int) {
 			for i := 0; i < command.steps; i++ {
 				ox--
 				if plane[oy][ox] != 0 && plane[oy][ox] != id {
-					// There is already a wire. Mark this.
+					// There is already a wire. Mark this as a cut.
 					plane[oy][ox] = -1
+					addStepsToGlobalCuts(ox, oy, cutSteps, id, steps)
 				} else {
 					plane[oy][ox] = id
 				}
@@ -142,8 +160,9 @@ func simulate(plane plane, origin coordinate, wire wire, id int) {
 			for i := 0; i < command.steps; i++ {
 				oy++
 				if plane[oy][ox] != 0 && plane[oy][ox] != id {
-					// There is already a wire. Mark this.
+					// There is already a wire. Mark this as a cut.
 					plane[oy][ox] = -1
+					addStepsToGlobalCuts(ox, oy, cutSteps, id, steps)
 				} else {
 					plane[oy][ox] = id
 				}
@@ -155,6 +174,22 @@ func simulate(plane plane, origin coordinate, wire wire, id int) {
 	//for _, row := range plane {
 	//	fmt.Printf("%v\n", row)
 	//}
+}
+
+func addStepsToGlobalCuts(ox int, oy int, cutSteps map[coordinate]map[int]int, id int, steps int) {
+	fmt.Println("Found cut at ", ox, oy)
+
+	// This is an intersection. Remember the steps for this wire, if not yet collected (checked above).
+	coord := coordinate{ox, oy}
+	cut := cutSteps[coord]
+	if cut == nil {
+		cut = make(map[int]int)
+		cutSteps[coord] = cut
+	}
+	if _, ok := cut[id]; !ok {
+		// Add steps since not been added before.
+		cut[id] = steps
+	}
 }
 
 func allocatePlane(size int) plane {

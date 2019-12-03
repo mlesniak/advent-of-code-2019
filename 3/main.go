@@ -1,8 +1,9 @@
 package main
 
 import (
-	"fmt"
+	"io/ioutil"
 	"log"
+	"math"
 	"strconv"
 	"strings"
 )
@@ -15,25 +16,68 @@ type command struct {
 type wire []command
 type plane [][]int
 
+type coordinate struct {
+	x int
+	y int
+}
+
 func main() {
 	// TODO We could add up all single R, L, U, and Ds to find possible maximal dimensions?
-	const size = 10
+	const size = 10000
 	wires := load()
 	plane := allocatePlane(size)
 
 	// Simulate wires.
-	for _, wire := range wires {
-		simulate(plane, wire)
+	origin := initializeOrigin(plane)
+	for id, wire := range wires {
+		simulate(plane, origin, wire, id+1)
 	}
 
-	// Find intersections.
+	// Find all intersections, find minimum manhattan distance to origin.
+	cuts := findIntersections(plane)
+	findMinimumDistance(cuts, origin)
 }
 
-func simulate(plane plane, wire wire) {
-	ox := len(plane[0]) / 2
-	oy := len(plane) / 2
-	log.Printf("Origin ox=%d, oy=%d\n", ox, oy)
-	plane[oy][ox] = 9
+func findMinimumDistance(cuts []coordinate, origin coordinate) {
+	min := math.MaxInt64
+	for _, cut := range cuts {
+		mh := computeDistance(origin, cut)
+		if mh < min {
+			min = mh
+		}
+		log.Printf("%v -> %d\n", cut, mh)
+	}
+	log.Printf("Minimum distance %d\n", min)
+}
+
+func computeDistance(origin coordinate, cut coordinate) int {
+	return int(math.Abs(float64(origin.x-cut.x)) + math.Abs(float64(origin.y-cut.y)))
+}
+
+func initializeOrigin(plane plane) coordinate {
+	origin := coordinate{len(plane[0]) / 2, len(plane) / 2}
+	plane[origin.y][origin.x] = 9
+	log.Printf("Origin ox=%d, oy=%d\n", origin.x, origin.y)
+	return origin
+}
+
+func findIntersections(plane plane) []coordinate {
+	cs := make([]coordinate, 0)
+	for row := range plane {
+		for col := range plane {
+			if plane[row][col] == -1 {
+				cs = append(cs, coordinate{col, row})
+			}
+		}
+	}
+
+	log.Printf("Cuts at %v\n", cs)
+	return cs
+}
+
+func simulate(plane plane, origin coordinate, wire wire, id int) {
+	ox := origin.x
+	oy := origin.y
 
 	log.Printf("wire=%v\n", wire)
 	// "Paint" plane with 1, if a cable is at position,
@@ -43,30 +87,50 @@ func simulate(plane plane, wire wire) {
 		case "R":
 			for i := 0; i < command.steps; i++ {
 				ox++
-				plane[oy][ox] = plane[oy][ox] + 1
+				if plane[oy][ox] != 0 {
+					// There is already a wire. Mark this.
+					plane[oy][ox] = -1
+				} else {
+					plane[oy][ox] = id
+				}
 			}
 		case "U":
 			for i := 0; i < command.steps; i++ {
 				oy--
-				plane[oy][ox] = plane[oy][ox] + 1
+				if plane[oy][ox] != 0 {
+					// There is already a wire. Mark this.
+					plane[oy][ox] = -1
+				} else {
+					plane[oy][ox] = id
+				}
 			}
 		case "L":
 			for i := 0; i < command.steps; i++ {
 				ox--
-				plane[oy][ox] = plane[oy][ox] + 1
+				if plane[oy][ox] != 0 {
+					// There is already a wire. Mark this.
+					plane[oy][ox] = -1
+				} else {
+					plane[oy][ox] = id
+				}
 			}
 		case "D":
 			for i := 0; i < command.steps; i++ {
 				oy++
-				plane[oy][ox] = plane[oy][ox] + 1
+				if plane[oy][ox] != 0 {
+					// There is already a wire. Mark this.
+					plane[oy][ox] = -1
+				} else {
+					plane[oy][ox] = id
+				}
 			}
 		}
 	}
 
-	log.Printf("Resulting wire:\n")
-	for _, row := range plane {
-		fmt.Printf("%v\n", row)
-	}
+	//log.Printf("Resulting wire:\n")
+	//for _, row := range plane {
+	//	fmt.Printf("%v\n", row)
+	//}
 }
 
 func allocatePlane(size int) plane {
@@ -81,9 +145,10 @@ func allocatePlane(size int) plane {
 
 func load() []wire {
 	// Import.
-	//bytes, _ := ioutil.ReadFile("input.txt")
-	// For testing, see https://adventofcode.com/2019/day/2.
-	bytes := []byte("R8,U5,L5,D3")
+	bytes, _ := ioutil.ReadFile("input.txt")
+
+	// For testing, comment out this.
+	//bytes = []byte("R5,U3\nU2,R6")
 
 	var wires []wire
 	lines := strings.Split(string(bytes), "\n")

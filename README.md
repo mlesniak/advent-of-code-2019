@@ -9,3 +9,4 @@ My solutions written in [Golang](http://golang.org) for [Advent of Code 2019](ht
 | 1   | [The Tyranny of the Rocket Equation](https://adventofcode.com/2019/day/1) | [1](1) |
 | 2   | [1202 Program Alarm](https://adventofcode.com/2019/day/2) | [2](2) |
 | 3   | [Crossed Wires](https://adventofcode.com/2019/day/3) | [3](3) |
+| 4   | [Secure Container](https://adventofcode.com/2019/day/4) | [4](4) |

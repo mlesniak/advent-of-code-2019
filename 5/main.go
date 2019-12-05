@@ -11,7 +11,7 @@ func main() {
 	// Part 1.
 	memory := load()
 	compute(memory)
-	showResult(memory)
+	//showResult(memory)
 }
 
 func showResult(memory []int) {
@@ -43,7 +43,7 @@ func compute(memory []int) {
 				m2 = memory[i+2]
 			}
 			var m3 int
-			m3 = memory[memory[i+3]]
+			m3 = memory[i+3]
 			memory[m3] = m1 + m2
 			i += 4
 		case 2:
@@ -75,7 +75,14 @@ func compute(memory []int) {
 			memory[memory[i+1]] = num
 			i += 2
 		case 4:
-			fmt.Println(memory[memory[i+1]])
+			var m1 int
+			if r1 == 0 {
+				m1 = memory[memory[i+1]]
+			}
+			if r1 == 1 {
+				m1 = memory[i+1]
+			}
+			fmt.Println(m1)
 			i += 2
 		case 99:
 			return

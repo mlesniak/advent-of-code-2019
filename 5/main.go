@@ -20,51 +20,57 @@ func showResult(memory []int) {
 }
 
 func compute(memory []int) {
-	for i := 0; i < len(memory); {
-		opcode := memory[i] % 100
-		r1 := memory[i] / 100 % 10
-		r2 := memory[i] / 1000 % 10
-		//r3 := memory[i] / 10000 % 10
+	for ip := 0; ip < len(memory); {
+		//fmt.Println("-------------------------------------------------")
+		//fmt.Println("*** ip:", ip)
+		//for i, k := range memory {
+		//	fmt.Println(i, "op:",k)
+		//}
+		mem := memory[ip]
+		opcode := mem % 100
+		r1 := mem / 100 % 10
+		r2 := mem / 1000 % 10
+		//r3 := memory[ip] / 10000 % 10
 
 		switch opcode {
 		case 1:
 			var m1 int
 			if r1 == 0 {
-				m1 = memory[memory[i+1]]
+				m1 = memory[memory[ip+1]]
 			}
 			if r1 == 1 {
-				m1 = memory[i+1]
+				m1 = memory[ip+1]
 			}
 			var m2 int
 			if r2 == 0 {
-				m2 = memory[memory[i+2]]
+				m2 = memory[memory[ip+2]]
 			}
 			if r2 == 1 {
-				m2 = memory[i+2]
+				m2 = memory[ip+2]
 			}
 			var m3 int
-			m3 = memory[i+3]
+			m3 = memory[ip+3]
 			memory[m3] = m1 + m2
-			i += 4
+			ip += 4
 		case 2:
 			var m1 int
 			if r1 == 0 {
-				m1 = memory[memory[i+1]]
+				m1 = memory[memory[ip+1]]
 			}
 			if r1 == 1 {
-				m1 = memory[i+1]
+				m1 = memory[ip+1]
 			}
 			var m2 int
 			if r2 == 0 {
-				m2 = memory[memory[i+2]]
+				m2 = memory[memory[ip+2]]
 			}
 			if r2 == 1 {
-				m2 = memory[i+2]
+				m2 = memory[ip+2]
 			}
 			var m3 int
-			m3 = memory[i+3]
+			m3 = memory[ip+3]
 			memory[m3] = m1 * m2
-			i += 4
+			ip += 4
 		case 3:
 			var num int
 			fmt.Print("? ")
@@ -72,18 +78,108 @@ func compute(memory []int) {
 			if err != nil {
 				panic(err)
 			}
-			memory[memory[i+1]] = num
-			i += 2
+			memory[memory[ip+1]] = num
+			ip += 2
 		case 4:
 			var m1 int
 			if r1 == 0 {
-				m1 = memory[memory[i+1]]
+				m1 = memory[memory[ip+1]]
 			}
 			if r1 == 1 {
-				m1 = memory[i+1]
+				m1 = memory[ip+1]
 			}
 			fmt.Println(m1)
-			i += 2
+			ip += 2
+		case 5:
+			// Jump if true.
+			var m1 int
+			if r1 == 0 {
+				m1 = memory[memory[ip+1]]
+			}
+			if r1 == 1 {
+				m1 = memory[ip+1]
+			}
+			var m2 int
+			if r2 == 0 {
+				m2 = memory[memory[ip+2]]
+			}
+			if r2 == 1 {
+				m2 = memory[ip+2]
+			}
+			if m1 != 0 {
+				ip = m2
+			} else {
+				ip += 3
+			}
+		case 6:
+			// Jump if false.
+			var m1 int
+			if r1 == 0 {
+				m1 = memory[memory[ip+1]]
+			}
+			if r1 == 1 {
+				m1 = memory[ip+1]
+			}
+			var m2 int
+			if r2 == 0 {
+				m2 = memory[memory[ip+2]]
+			}
+			if r2 == 1 {
+				m2 = memory[ip+2]
+			}
+			if m1 == 0 {
+				ip = m2
+			} else {
+				ip += 3
+			}
+		case 7:
+			// Less than.
+			var m1 int
+			if r1 == 0 {
+				m1 = memory[memory[ip+1]]
+			}
+			if r1 == 1 {
+				m1 = memory[ip+1]
+			}
+			var m2 int
+			if r2 == 0 {
+				m2 = memory[memory[ip+2]]
+			}
+			if r2 == 1 {
+				m2 = memory[ip+2]
+			}
+			var m3 int
+			m3 = memory[ip+3]
+			if m1 < m2 {
+				memory[m3] = 1
+			} else {
+				memory[m3] = 0
+			}
+			ip += 4
+		case 8:
+			// Equals.
+			var m1 int
+			if r1 == 0 {
+				m1 = memory[memory[ip+1]]
+			}
+			if r1 == 1 {
+				m1 = memory[ip+1]
+			}
+			var m2 int
+			if r2 == 0 {
+				m2 = memory[memory[ip+2]]
+			}
+			if r2 == 1 {
+				m2 = memory[ip+2]
+			}
+			var m3 int
+			m3 = memory[ip+3]
+			if m1 == m2 {
+				memory[m3] = 1
+			} else {
+				memory[m3] = 0
+			}
+			ip += 4
 		case 99:
 			return
 		default:

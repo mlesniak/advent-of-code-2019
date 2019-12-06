@@ -21,11 +21,40 @@ func main() {
 		dest.parent = src
 	}
 
-	steps := 0
-	for _, def := range refs {
-		steps += countLinkage(def)
+	//steps := 0
+	//for _, def := range refs {
+	//	steps += countLinkage(def)
+	//}
+	//fmt.Println(steps)
+
+	pathYou := getPath(refs, refs["YOU"])
+	pathSan := getPath(refs, refs["SAN"])
+	youSteps := 0
+loop:
+	for _, v := range pathYou {
+		youSteps++
+		sanSteps := 0
+		for _, w := range pathSan {
+			sanSteps++
+			if v == w {
+				// Common ancestor found.
+				youSteps += sanSteps
+				break loop
+			}
+		}
 	}
-	fmt.Println(steps)
+	// Ignore steps to the parent of YOU and SAN.
+	youSteps -= 2
+	fmt.Println(youSteps)
+}
+
+func getPath(nodes map[string]*node, node *node) []string {
+	if node.name == "COM" {
+		return []string{""}
+	}
+
+	path := getPath(nodes, node.parent)
+	return append([]string{node.parent.name}, path...)
 }
 
 func countLinkage(def *node) int {

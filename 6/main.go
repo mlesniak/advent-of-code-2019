@@ -21,7 +21,22 @@ func main() {
 		dest.parent = src
 	}
 
-	fmt.Println(refs["PWZ"].parent.name)
+	steps := 0
+	for _, def := range refs {
+		steps += countLinkage(def)
+	}
+	fmt.Println(steps)
+}
+
+func countLinkage(def *node) int {
+	if def.parent == nil {
+		return 0
+	}
+	if def.parent.name == "COM" {
+		return 1
+	}
+
+	return 1 + countLinkage(def.parent)
 }
 
 func getNodeOrCreate(refs map[string]*node, name string) *node {

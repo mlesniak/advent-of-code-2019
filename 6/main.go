@@ -7,26 +7,34 @@ import (
 )
 
 type node struct {
-	name     string
-	children []*node
+	name   string
+	parent *node
 }
 
 func main() {
 	defs := load()
 
-	refs := make(map[string]node)
+	refs := make(map[string]*node)
 	for _, def := range defs {
-		// add map to single nodes
-		_, ok := refs[def.source]
-		if !ok {
-			refs[def.source] = node{
-				name:     def.source,
-				children: []*node{},
-			}
-		}
+		src := getNodeOrCreate(refs, def.source)
+		dest := getNodeOrCreate(refs, def.destination)
+		dest.parent = src
 	}
 
-	fmt.Println(refs)
+	fmt.Println(refs["PWZ"].parent.name)
+}
+
+func getNodeOrCreate(refs map[string]*node, name string) *node {
+	val, ok := refs[name]
+	if !ok {
+		refs[name] = &node{
+			name:   name,
+			parent: nil,
+		}
+		val = refs[name]
+	}
+
+	return val
 }
 
 type def struct {

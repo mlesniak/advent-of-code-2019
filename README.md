@@ -12,3 +12,4 @@ My solutions written in [Golang](http://golang.org) for [Advent of Code 2019](ht
 | 4   | [Secure Container](https://adventofcode.com/2019/day/4) | [4](4) |
 | 5   | [Sunny with a Chance of Asteroids](https://adventofcode.com/2019/day/5) | [5](5) |
 | 6   | [Universal Orbit Map](https://adventofcode.com/2019/day/6) | [6](6) |
+| 7   | [Amplification Circuit](https://adventofcode.com/2019/day/7) | [7](7) |

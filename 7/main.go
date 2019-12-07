@@ -1,49 +1,61 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
-	"io"
 	"io/ioutil"
-	"math"
-	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func main() {
-	// Part 1.
-	//memory := load()
-	//compute(memory, os.Stdin, os.Stdout)
+	// Test channel operations
+	memory := load()
+	in := make(chan int, 1)
+	out := make(chan int, 1)
+	in <- 5
+	go func() {
+		for {
+			n := <-out
+			fmt.Println(n)
+		}
+	}()
+	compute(memory, in, out)
+	time.Sleep(time.Second)
 	//showResult(memory)
 
-	combinations := permutations([]int{0, 1, 2, 3, 4})
-	maxBoost := math.MinInt64
-	for _, combination := range combinations {
-		fmt.Println("Combination", combination)
-		var input *strings.Reader
-		var output *bytes.Buffer
+	//combinations := permutations([]int{5, 6, 7, 8, 9})
+	//maxBoost := math.MinInt64
+	//for _, combination := range combinations {
+	//	fmt.Println("Combination", combination)
+	//	var input *strings.Reader
+	//	var output *bytes.Buffer
+	//
+	//	output = new(bytes.Buffer)
+	//	output.Write([]byte(" 0"))
+	//
+	//	// Test run 1
+	//	combination = []int{9, 8, 7, 6, 5}
+	//	for {
+	//		for _, c := range combination {
+	//			input = strings.NewReader(strconv.Itoa(c) + " " + output.String())
+	//			output = new(bytes.Buffer)
+	//			memory := load() // Correct?
+	//			compute(memory, input, output)
+	//		}
+	//	}
+	//
+	//	val, err := strconv.Atoi(strings.Trim(output.String(), " "))
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	//	if val > maxBoost {
+	//		maxBoost = val
+	//	}
+	//}
+	//
+	//fmt.Println("Maximum maxBoost", maxBoost)
 
-		output = new(bytes.Buffer)
-		output.Write([]byte(" 0"))
-
-		for _, c := range combination {
-			input = strings.NewReader(strconv.Itoa(c) + " " + output.String())
-			output = new(bytes.Buffer)
-			memory := load()
-			compute(memory, input, output)
-		}
-
-		val, err := strconv.Atoi(strings.Trim(output.String(), " "))
-		if err != nil {
-			panic(err)
-		}
-		if val > maxBoost {
-			maxBoost = val
-		}
-	}
-
-	fmt.Println("Maximum maxBoost", maxBoost)
 }
 
 // See https://stackoverflow.com/questions/30226438/generate-all-permutations-in-go
@@ -80,7 +92,7 @@ func showResult(memory []int) {
 	fmt.Println(memory[0])
 }
 
-func compute(memory []int, in io.Reader, out io.Writer) {
+func compute(memory []int, in chan int, out chan int) {
 	for ip := 0; ip < len(memory); {
 		//fmt.Println("-------------------------------------------------")
 		//fmt.Println("*** ip:", ip)
@@ -134,13 +146,7 @@ func compute(memory []int, in io.Reader, out io.Writer) {
 			ip += 4
 		case 3:
 			var num int
-			if in == os.Stdin {
-				fmt.Print("? ")
-			}
-			_, err := fmt.Fscanf(in, "%d", &num)
-			if err != nil {
-				panic(err)
-			}
+			num = <-in
 			memory[memory[ip+1]] = num
 			ip += 2
 		case 4:
@@ -151,7 +157,8 @@ func compute(memory []int, in io.Reader, out io.Writer) {
 			if r1 == 1 {
 				m1 = memory[ip+1]
 			}
-			_, _ = fmt.Fprintf(out, "%d ", m1)
+			//_, _ = fmt.Fprintf(out, "%d ", m1)
+			out <- m1
 			ip += 2
 		case 5:
 			// Jump if true.

@@ -3,90 +3,68 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"math"
 	"strconv"
 	"strings"
 )
 
 func main() {
-	//combinations := permutations([]int{5, 6, 7, 8, 9})
-	//for _, combination := range combinations {
-	combination := []int{9, 8, 7, 6, 5}
-	fmt.Println("Combination", combination)
+	maxBoost := math.MinInt64
+	combinations := permutations([]int{5, 6, 7, 8, 9})
+	for _, combination := range combinations {
+		fmt.Println("Combination", combination)
 
-	a := load()
-	aIn := make(chan int, 10)
-	aOut := make(chan int, 10)
-	go func() {
-		compute(a, aIn, aOut)
-	}()
+		// Easier to reason about and play with using explicit loop unrolling in this case.
+		a := load()
+		aIn := make(chan int, 10)
+		aOut := make(chan int, 10)
+		go func() {
+			compute("a", a, aIn, aOut)
+		}()
 
-	b := load()
-	bIn := aOut
-	bOut := make(chan int, 10)
-	go func() {
-		compute(b, bIn, bOut)
-	}()
+		b := load()
+		bIn := aOut
+		bOut := make(chan int, 10)
+		go func() {
+			compute("b", b, bIn, bOut)
+		}()
 
-	c := load()
-	cIn := bOut
-	cOut := make(chan int, 10)
-	go func() {
-		compute(c, cIn, cOut)
-	}()
+		c := load()
+		cIn := bOut
+		cOut := make(chan int, 10)
+		go func() {
+			compute("c", c, cIn, cOut)
+		}()
 
-	d := load()
-	dIn := cOut
-	dOut := make(chan int, 10)
-	go func() {
-		compute(d, dIn, dOut)
-	}()
+		d := load()
+		dIn := cOut
+		dOut := make(chan int, 10)
+		go func() {
+			compute("d", d, dIn, dOut)
+		}()
 
-	e := load()
-	eIn := dOut
-	eOut := aIn
-	//go func() {
-	//	compute(e, eIn, eOut)
-	//}()
+		e := load()
+		eIn := dOut
+		eOut := aIn
 
-	// Initialize phase setting.
-	aIn <- 9
-	bIn <- 8
-	cIn <- 7
-	dIn <- 6
-	eIn <- 5
+		// Initialize phase setting.
+		aIn <- combination[0]
+		bIn <- combination[1]
+		cIn <- combination[2]
+		dIn <- combination[3]
+		eIn <- combination[4]
 
-	// Start run
-	aIn <- 0
-	compute(e, eIn, eOut)
+		// Start run
+		aIn <- 0
+		compute("e", e, eIn, eOut)
 
-	n := <-eOut
-	fmt.Println(n)
+		n := <-eOut
+		if n > maxBoost {
+			maxBoost = n
+		}
+	}
 
-	// Wait for output
-	//go func() {
-	//	for {
-	//		n := <-aOut
-	//		fmt.Println(n)
-	//	}
-	//}()
-	//time.Sleep(time.Second)
-}
-
-func test() {
-	// Test channel operations
-	//memory := load()
-	//in := make(chan int, 10)
-	//out := make(chan int, 1)
-	//in <- 5
-	//go func() {
-	//	for {
-	//		n := <-out
-	//		fmt.Println(n)
-	//	}
-	//}()
-	//compute(memory, in, out)
-	//time.Sleep(time.Second)
-	//showResult(memory)
+	fmt.Println("MaxBoos", maxBoost)
 }
 
 // See https://stackoverflow.com/questions/30226438/generate-all-permutations-in-go
@@ -123,13 +101,8 @@ func showResult(memory []int) {
 	fmt.Println(memory[0])
 }
 
-func compute(memory []int, in chan int, out chan int) {
+func compute(name string, memory []int, in chan int, out chan int) {
 	for ip := 0; ip < len(memory); {
-		//fmt.Println("-------------------------------------------------")
-		//fmt.Println("*** ip:", ip)
-		//for i, k := range memory {
-		//	fmt.Println(i, "op:",k)
-		//}
 		mem := memory[ip]
 		opcode := mem % 100
 		r1 := mem / 100 % 10
@@ -296,7 +269,10 @@ func load() []int {
 	//fmt.Println(lines)
 	var memory []int
 	for _, val := range lines {
-		i, _ := strconv.Atoi(val)
+		i, err := strconv.Atoi(val)
+		if err != nil {
+			panic(err)
+		}
 		memory = append(memory, i)
 	}
 	return memory

@@ -21,34 +21,18 @@ func main() {
 	maxBoost := math.MinInt64
 	for _, combination := range combinations {
 		fmt.Println("Combination", combination)
-		// Loop unrolling for easier debugging (for now)
 		var input *strings.Reader
 		var output *bytes.Buffer
 
-		input = strings.NewReader(strconv.Itoa(combination[0]) + " 0")
 		output = new(bytes.Buffer)
-		memory := load()
-		compute(memory, input, output)
+		output.Write([]byte(" 0"))
 
-		input = strings.NewReader(strconv.Itoa(combination[1]) + " " + output.String())
-		output = new(bytes.Buffer)
-		memory = load()
-		compute(memory, input, output)
-
-		input = strings.NewReader(strconv.Itoa(combination[2]) + " " + output.String())
-		output = new(bytes.Buffer)
-		memory = load()
-		compute(memory, input, output)
-
-		input = strings.NewReader(strconv.Itoa(combination[3]) + " " + output.String())
-		output = new(bytes.Buffer)
-		memory = load()
-		compute(memory, input, output)
-
-		input = strings.NewReader(strconv.Itoa(combination[4]) + " " + output.String())
-		output = new(bytes.Buffer)
-		memory = load()
-		compute(memory, input, output)
+		for _, c := range combination {
+			input = strings.NewReader(strconv.Itoa(c) + " " + output.String())
+			output = new(bytes.Buffer)
+			memory := load()
+			compute(memory, input, output)
+		}
 
 		val, err := strconv.Atoi(strings.Trim(output.String(), " "))
 		if err != nil {

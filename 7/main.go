@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -11,9 +13,82 @@ import (
 
 func main() {
 	// Part 1.
-	memory := load()
-	compute(memory, os.Stdin, os.Stdout)
+	//memory := load()
+	//compute(memory, os.Stdin, os.Stdout)
 	//showResult(memory)
+
+	combinations := permutations([]int{0, 1, 2, 3, 4})
+	maxBoost := math.MinInt64
+	for _, combination := range combinations {
+		fmt.Println("Combination", combination)
+		// Loop unrolling for easier debugging (for now)
+		var input *strings.Reader
+		var output *bytes.Buffer
+
+		input = strings.NewReader(strconv.Itoa(combination[0]) + " 0")
+		output = new(bytes.Buffer)
+		memory := load()
+		compute(memory, input, output)
+
+		input = strings.NewReader(strconv.Itoa(combination[1]) + " " + output.String())
+		output = new(bytes.Buffer)
+		memory = load()
+		compute(memory, input, output)
+
+		input = strings.NewReader(strconv.Itoa(combination[2]) + " " + output.String())
+		output = new(bytes.Buffer)
+		memory = load()
+		compute(memory, input, output)
+
+		input = strings.NewReader(strconv.Itoa(combination[3]) + " " + output.String())
+		output = new(bytes.Buffer)
+		memory = load()
+		compute(memory, input, output)
+
+		input = strings.NewReader(strconv.Itoa(combination[4]) + " " + output.String())
+		output = new(bytes.Buffer)
+		memory = load()
+		compute(memory, input, output)
+
+		val, err := strconv.Atoi(strings.Trim(output.String(), " "))
+		if err != nil {
+			panic(err)
+		}
+		if val > maxBoost {
+			maxBoost = val
+		}
+	}
+
+	fmt.Println("Maximum maxBoost", maxBoost)
+}
+
+// See https://stackoverflow.com/questions/30226438/generate-all-permutations-in-go
+func permutations(arr []int) [][]int {
+	var helper func([]int, int)
+	res := [][]int{}
+
+	helper = func(arr []int, n int) {
+		if n == 1 {
+			tmp := make([]int, len(arr))
+			copy(tmp, arr)
+			res = append(res, tmp)
+		} else {
+			for i := 0; i < n; i++ {
+				helper(arr, n-1)
+				if n%2 == 1 {
+					tmp := arr[i]
+					arr[i] = arr[n-1]
+					arr[n-1] = tmp
+				} else {
+					tmp := arr[0]
+					arr[0] = arr[n-1]
+					arr[n-1] = tmp
+				}
+			}
+		}
+	}
+	helper(arr, len(arr))
+	return res
 }
 
 func showResult(memory []int) {
@@ -92,7 +167,7 @@ func compute(memory []int, in io.Reader, out io.Writer) {
 			if r1 == 1 {
 				m1 = memory[ip+1]
 			}
-			_, _ = fmt.Fprintf(out, "%d\n", m1)
+			_, _ = fmt.Fprintf(out, "%d ", m1)
 			ip += 2
 		case 5:
 			// Jump if true.

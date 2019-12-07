@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -73,8 +74,8 @@ func compute(memory []int) {
 			ip += 4
 		case 3:
 			var num int
-			fmt.Print("? ")
-			_, err := fmt.Scanf("%d", &num)
+			fmt.Print("? ") // TODO Prompt only if os.Stdin
+			_, err := fmt.Fscanf(os.Stdin, "%d", &num)
 			if err != nil {
 				panic(err)
 			}
@@ -88,7 +89,7 @@ func compute(memory []int) {
 			if r1 == 1 {
 				m1 = memory[ip+1]
 			}
-			fmt.Println(m1)
+			_, _ = fmt.Fprintf(os.Stdout, "%d\n", m1)
 			ip += 2
 		case 5:
 			// Jump if true.

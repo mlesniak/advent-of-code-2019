@@ -19,8 +19,52 @@ func main() {
 	width := 25
 	height := 6
 	image := image{width: width, height: height}
-	parseLayer(width, height, image)
-	checksum(image)
+	parseLayer(width, height, &image)
+	//checksum(image)
+
+	// Create output picture
+	picture := make([][]int, height)
+	for row := 0; row < height; row++ {
+		picture[row] = make([]int, width)
+	}
+
+	// Iterate through all pixels.
+	for row := 0; row < height; row++ {
+		for col := 0; col < width; col++ {
+		layerLoop:
+			for layer := 0; layer < len(image.layers); layer++ {
+				pixel := image.layers[layer][row][col]
+				switch pixel {
+				case 2:
+					// Transparency
+					continue
+				case 0:
+					// Black
+					picture[row][col] = 0
+					break layerLoop
+				case 1:
+					// White
+					picture[row][col] = 1
+					break layerLoop
+				}
+			}
+		}
+	}
+
+	// Display in console
+	for row := 0; row < height; row++ {
+		for col := 0; col < width; col++ {
+			pixel := picture[row][col]
+			if pixel == 0 {
+				fmt.Print(" ")
+			} else if pixel == 1 {
+				fmt.Print("X")
+			} else {
+				fmt.Print("?")
+			}
+		}
+		fmt.Println()
+	}
 }
 
 // Would be easier if we had not split up the layers into two dimensions. ¯\_(ツ)_/¯
@@ -53,7 +97,7 @@ func checksum(image image) {
 	fmt.Println(ones * twos)
 }
 
-func parseLayer(width int, height int, image image) {
+func parseLayer(width int, height int, image *image) {
 	data := load()
 	// Read image parts
 	layerSize := width * height

@@ -19,24 +19,12 @@ func main() {
 	width := 25
 	height := 6
 	image := image{width: width, height: height}
-	data := load()
+	parseLayer(width, height, image)
+	checksum(image)
+}
 
-	// Read image parts
-	layerSize := width * height
-	for layerIndex := 0; layerIndex < len(data)/layerSize; layerIndex++ {
-		layerData := data[layerIndex*layerSize : layerIndex*layerSize+layerSize]
-		layer := make([][]int, height)
-		for row := 0; row < height; row++ {
-			layer[row] = make([]int, width)
-			for col := 0; col < width; col++ {
-				idx := row*width + col
-				layer[row][col] = layerData[idx]
-			}
-		}
-		image.layers = append(image.layers, layer)
-	}
-
-	// Would be easier if we had not split up the layers into two dimensions. ¯\_(ツ)_/¯
+// Would be easier if we had not split up the layers into two dimensions. ¯\_(ツ)_/¯
+func checksum(image image) {
 	minZeroes := math.MaxInt64
 	ones := 0
 	twos := 0
@@ -62,8 +50,25 @@ func main() {
 			minZeroes = z
 		}
 	}
-
 	fmt.Println(ones * twos)
+}
+
+func parseLayer(width int, height int, image image) {
+	data := load()
+	// Read image parts
+	layerSize := width * height
+	for layerIndex := 0; layerIndex < len(data)/layerSize; layerIndex++ {
+		layerData := data[layerIndex*layerSize : layerIndex*layerSize+layerSize]
+		layer := make([][]int, height)
+		for row := 0; row < height; row++ {
+			layer[row] = make([]int, width)
+			for col := 0; col < width; col++ {
+				idx := row*width + col
+				layer[row][col] = layerData[idx]
+			}
+		}
+		image.layers = append(image.layers, layer)
+	}
 }
 
 func load() []int {

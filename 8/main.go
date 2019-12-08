@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"math"
 	"strconv"
 )
 
@@ -15,11 +16,10 @@ type image struct {
 }
 
 func main() {
-	width := 3
-	height := 2
-	data := load()
-
+	width := 25
+	height := 6
 	image := image{width: width, height: height}
+	data := load()
 
 	// Read image parts
 	layerSize := width * height
@@ -36,7 +36,34 @@ func main() {
 		image.layers = append(image.layers, layer)
 	}
 
-	fmt.Println(image)
+	// Would be easier if we had not split up the layers into two dimensions. ¯\_(ツ)_/¯
+	minZeroes := math.MaxInt64
+	ones := 0
+	twos := 0
+	for _, layer := range image.layers {
+		z := 0
+		o := 0
+		t := 0
+		for _, row := range layer {
+			for _, value := range row {
+				switch value {
+				case 0:
+					z++
+				case 1:
+					o++
+				case 2:
+					t++
+				}
+			}
+		}
+		if z < minZeroes {
+			ones = o
+			twos = t
+			minZeroes = z
+		}
+	}
+
+	fmt.Println(ones * twos)
 }
 
 func load() []int {

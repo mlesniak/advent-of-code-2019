@@ -22,10 +22,10 @@ func main() {
 	}()
 
 	// Run in Test mode
-	in <- 1
+	in <- 2
 
 	compute("memory", memory, in, out)
-	fmt.Println(memory[:10])
+	//fmt.Println(memory[:10])
 	time.Sleep(time.Second * 2)
 }
 
@@ -44,7 +44,7 @@ func compute(name string, memory []int, in chan int, out chan int) {
 	for ip := 0; ip < len(memory); {
 		mem := memory[ip]
 		opcode := mem % 100
-		fmt.Println("ip", ip, "; mem", mem, "; opcode", opcode, "; relBase", relBase)
+		//fmt.Println("ip", ip, "; mem", mem, "; opcode", opcode, "; relBase", relBase)
 		r1 := mem / 100 % 10
 		r2 := mem / 1000 % 10
 		r3 := memory[ip] / 10000 % 10

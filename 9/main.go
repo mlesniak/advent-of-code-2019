@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const MemorySize = 1000000
@@ -19,12 +20,16 @@ func main() {
 			fmt.Println(n)
 		}
 	}()
+
+	// Run in Test mode
+	in <- 1
+
 	compute("memory", memory, in, out)
-	//time.Sleep(time.Second * 5)
+	time.Sleep(time.Second * 5)
 }
 
 func newChannel() chan int {
-	return make(chan int, 1)
+	return make(chan int, 10)
 }
 
 // See https://stackoverflow.com/questions/30226438/generate-all-permutations-in-go
@@ -138,6 +143,7 @@ func compute(name string, memory []int, in chan int, out chan int) {
 			if r1 == 2 {
 				m1 = memory[memory[ip+1]+relBase]
 			}
+			fmt.Println("Sending", m1)
 			out <- m1
 			ip += 2
 		case 5:

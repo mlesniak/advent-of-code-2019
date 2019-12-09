@@ -5,13 +5,21 @@ import (
 	"io/ioutil"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func main() {
 	memory := load()
-	aIn := newChannel()
-	aOut := newChannel()
-	compute("memory", memory, aIn, aOut)
+	in := newChannel()
+	out := newChannel()
+	go func() {
+		for {
+			n := <-out
+			fmt.Println(n)
+		}
+	}()
+	compute("memory", memory, in, out)
+	time.Sleep(time.Second * 5)
 }
 
 func newChannel() chan int {
@@ -53,6 +61,8 @@ func showResult(memory []int) {
 }
 
 func compute(name string, memory []int, in chan int, out chan int) {
+	relBase := 0
+
 	for ip := 0; ip < len(memory); {
 		mem := memory[ip]
 		opcode := mem % 100
@@ -205,6 +215,17 @@ func compute(name string, memory []int, in chan int, out chan int) {
 				memory[m3] = 0
 			}
 			ip += 4
+		case 9:
+			// Relative base adjustment.
+			var m1 int
+			if r1 == 0 {
+				m1 = memory[memory[ip+1]]
+			}
+			if r1 == 1 {
+				m1 = memory[ip+1]
+			}
+			relBase += m1
+			ip += 2
 		case 99:
 			return
 		default:

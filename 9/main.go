@@ -25,40 +25,12 @@ func main() {
 	in <- 1
 
 	compute("memory", memory, in, out)
-	time.Sleep(time.Second * 5)
+	fmt.Println(memory[:10])
+	time.Sleep(time.Second * 2)
 }
 
 func newChannel() chan int {
 	return make(chan int, 10)
-}
-
-// See https://stackoverflow.com/questions/30226438/generate-all-permutations-in-go
-func permutations(arr []int) [][]int {
-	var helper func([]int, int)
-	res := [][]int{}
-
-	helper = func(arr []int, n int) {
-		if n == 1 {
-			tmp := make([]int, len(arr))
-			copy(tmp, arr)
-			res = append(res, tmp)
-		} else {
-			for i := 0; i < n; i++ {
-				helper(arr, n-1)
-				if n%2 == 1 {
-					tmp := arr[i]
-					arr[i] = arr[n-1]
-					arr[n-1] = tmp
-				} else {
-					tmp := arr[0]
-					arr[0] = arr[n-1]
-					arr[n-1] = tmp
-				}
-			}
-		}
-	}
-	helper(arr, len(arr))
-	return res
 }
 
 func showResult(memory []int) {
@@ -72,9 +44,10 @@ func compute(name string, memory []int, in chan int, out chan int) {
 	for ip := 0; ip < len(memory); {
 		mem := memory[ip]
 		opcode := mem % 100
+		fmt.Println("ip", ip, "; mem", mem, "; opcode", opcode, "; relBase", relBase)
 		r1 := mem / 100 % 10
 		r2 := mem / 1000 % 10
-		//r3 := memory[ip] / 10000 % 10
+		r3 := memory[ip] / 10000 % 10
 
 		switch opcode {
 		case 1:
@@ -99,7 +72,14 @@ func compute(name string, memory []int, in chan int, out chan int) {
 				m2 = memory[memory[ip+2]+relBase]
 			}
 			var m3 int
-			m3 = memory[ip+3]
+			if r3 == 0 {
+				m3 = memory[ip+3]
+			}
+			if r3 == 2 {
+				m3 = memory[ip+3] + relBase
+				fmt.Println("Saving at", m3)
+			}
+			//m3 = memory[ip+3]
 			memory[m3] = m1 + m2
 			ip += 4
 		case 2:
@@ -130,7 +110,15 @@ func compute(name string, memory []int, in chan int, out chan int) {
 		case 3:
 			var num int
 			num = <-in
-			memory[memory[ip+1]] = num
+			if r1 == 0 {
+				memory[memory[ip+1]] = num
+			}
+			if r1 == 1 {
+				panic("How should this work?")
+			}
+			if r1 == 2 {
+				memory[memory[ip+1]+relBase] = num
+			}
 			ip += 2
 		case 4:
 			var m1 int
@@ -143,7 +131,6 @@ func compute(name string, memory []int, in chan int, out chan int) {
 			if r1 == 2 {
 				m1 = memory[memory[ip+1]+relBase]
 			}
-			fmt.Println("Sending", m1)
 			out <- m1
 			ip += 2
 		case 5:

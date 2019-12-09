@@ -104,7 +104,16 @@ func compute(name string, memory []int, in chan int, out chan int) {
 				m2 = memory[memory[ip+2]+relBase]
 			}
 			var m3 int
-			m3 = memory[ip+3]
+			if r3 == 0 {
+				m3 = memory[ip+3]
+			}
+			if r3 == 1 {
+				panic("TODO")
+			}
+			if r3 == 2 {
+				m3 = memory[ip+3] + relBase
+			}
+			//m3 = memory[ip+3]
 			memory[m3] = m1 * m2
 			ip += 4
 		case 3:

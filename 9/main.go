@@ -5,8 +5,9 @@ import (
 	"io/ioutil"
 	"strconv"
 	"strings"
-	"time"
 )
+
+const MemorySize = 1000000
 
 func main() {
 	memory := load()
@@ -19,11 +20,11 @@ func main() {
 		}
 	}()
 	compute("memory", memory, in, out)
-	time.Sleep(time.Second * 5)
+	//time.Sleep(time.Second * 5)
 }
 
 func newChannel() chan int {
-	return make(chan int, 10)
+	return make(chan int, 1)
 }
 
 // See https://stackoverflow.com/questions/30226438/generate-all-permutations-in-go
@@ -79,12 +80,18 @@ func compute(name string, memory []int, in chan int, out chan int) {
 			if r1 == 1 {
 				m1 = memory[ip+1]
 			}
+			if r1 == 2 {
+				m1 = memory[memory[ip+1]+relBase]
+			}
 			var m2 int
 			if r2 == 0 {
 				m2 = memory[memory[ip+2]]
 			}
 			if r2 == 1 {
 				m2 = memory[ip+2]
+			}
+			if r2 == 2 {
+				m2 = memory[memory[ip+2]+relBase]
 			}
 			var m3 int
 			m3 = memory[ip+3]
@@ -98,12 +105,18 @@ func compute(name string, memory []int, in chan int, out chan int) {
 			if r1 == 1 {
 				m1 = memory[ip+1]
 			}
+			if r1 == 2 {
+				m1 = memory[memory[ip+1]+relBase]
+			}
 			var m2 int
 			if r2 == 0 {
 				m2 = memory[memory[ip+2]]
 			}
 			if r2 == 1 {
 				m2 = memory[ip+2]
+			}
+			if r2 == 2 {
+				m2 = memory[memory[ip+2]+relBase]
 			}
 			var m3 int
 			m3 = memory[ip+3]
@@ -122,7 +135,9 @@ func compute(name string, memory []int, in chan int, out chan int) {
 			if r1 == 1 {
 				m1 = memory[ip+1]
 			}
-			//_, _ = fmt.Fprintf(out, "%d ", m1)
+			if r1 == 2 {
+				m1 = memory[memory[ip+1]+relBase]
+			}
 			out <- m1
 			ip += 2
 		case 5:
@@ -134,12 +149,18 @@ func compute(name string, memory []int, in chan int, out chan int) {
 			if r1 == 1 {
 				m1 = memory[ip+1]
 			}
+			if r1 == 2 {
+				m1 = memory[memory[ip+1]+relBase]
+			}
 			var m2 int
 			if r2 == 0 {
 				m2 = memory[memory[ip+2]]
 			}
 			if r2 == 1 {
 				m2 = memory[ip+2]
+			}
+			if r2 == 2 {
+				m2 = memory[memory[ip+2]+relBase]
 			}
 			if m1 != 0 {
 				ip = m2
@@ -155,12 +176,18 @@ func compute(name string, memory []int, in chan int, out chan int) {
 			if r1 == 1 {
 				m1 = memory[ip+1]
 			}
+			if r1 == 2 {
+				m1 = memory[memory[ip+1]+relBase]
+			}
 			var m2 int
 			if r2 == 0 {
 				m2 = memory[memory[ip+2]]
 			}
 			if r2 == 1 {
 				m2 = memory[ip+2]
+			}
+			if r2 == 2 {
+				m2 = memory[memory[ip+2]+relBase]
 			}
 			if m1 == 0 {
 				ip = m2
@@ -176,12 +203,18 @@ func compute(name string, memory []int, in chan int, out chan int) {
 			if r1 == 1 {
 				m1 = memory[ip+1]
 			}
+			if r1 == 2 {
+				m1 = memory[memory[ip+1]+relBase]
+			}
 			var m2 int
 			if r2 == 0 {
 				m2 = memory[memory[ip+2]]
 			}
 			if r2 == 1 {
 				m2 = memory[ip+2]
+			}
+			if r2 == 2 {
+				m2 = memory[memory[ip+2]+relBase]
 			}
 			var m3 int
 			m3 = memory[ip+3]
@@ -200,12 +233,18 @@ func compute(name string, memory []int, in chan int, out chan int) {
 			if r1 == 1 {
 				m1 = memory[ip+1]
 			}
+			if r1 == 2 {
+				m1 = memory[memory[ip+1]+relBase]
+			}
 			var m2 int
 			if r2 == 0 {
 				m2 = memory[memory[ip+2]]
 			}
 			if r2 == 1 {
 				m2 = memory[ip+2]
+			}
+			if r2 == 2 {
+				m2 = memory[memory[ip+2]+relBase]
 			}
 			var m3 int
 			m3 = memory[ip+3]
@@ -224,6 +263,9 @@ func compute(name string, memory []int, in chan int, out chan int) {
 			if r1 == 1 {
 				m1 = memory[ip+1]
 			}
+			if r1 == 2 {
+				m1 = memory[memory[ip+1]+relBase]
+			}
 			relBase += m1
 			ip += 2
 		case 99:
@@ -235,17 +277,15 @@ func compute(name string, memory []int, in chan int, out chan int) {
 }
 
 func load() []int {
-	// Import.
 	bytes, _ := ioutil.ReadFile("input.txt")
 	lines := strings.Split(string(bytes), ",")
-	//fmt.Println(lines)
-	var memory []int
-	for _, val := range lines {
+	memory := make([]int, MemorySize)
+	for idx, val := range lines {
 		i, err := strconv.Atoi(val)
 		if err != nil {
 			panic(err)
 		}
-		memory = append(memory, i)
+		memory[idx] = i
 	}
 	return memory
 }

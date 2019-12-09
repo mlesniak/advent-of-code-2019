@@ -3,68 +3,19 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"math"
 	"strconv"
 	"strings"
 )
 
 func main() {
-	maxBoost := math.MinInt64
-	combinations := permutations([]int{5, 6, 7, 8, 9})
-	for _, combination := range combinations {
-		fmt.Println("Combination", combination)
+	memory := load()
+	aIn := newChannel()
+	aOut := newChannel()
+	compute("memory", memory, aIn, aOut)
+}
 
-		// Easier to reason about and play with using explicit loop unrolling in this case.
-		a := load()
-		aIn := make(chan int, 10)
-		aOut := make(chan int, 10)
-		go func() {
-			compute("a", a, aIn, aOut)
-		}()
-
-		b := load()
-		bIn := aOut
-		bOut := make(chan int, 10)
-		go func() {
-			compute("b", b, bIn, bOut)
-		}()
-
-		c := load()
-		cIn := bOut
-		cOut := make(chan int, 10)
-		go func() {
-			compute("c", c, cIn, cOut)
-		}()
-
-		d := load()
-		dIn := cOut
-		dOut := make(chan int, 10)
-		go func() {
-			compute("d", d, dIn, dOut)
-		}()
-
-		e := load()
-		eIn := dOut
-		eOut := aIn
-
-		// Initialize phase setting.
-		aIn <- combination[0]
-		bIn <- combination[1]
-		cIn <- combination[2]
-		dIn <- combination[3]
-		eIn <- combination[4]
-
-		// Start run
-		aIn <- 0
-		compute("e", e, eIn, eOut)
-
-		n := <-eOut
-		if n > maxBoost {
-			maxBoost = n
-		}
-	}
-
-	fmt.Println("MaxBoos", maxBoost)
+func newChannel() chan int {
+	return make(chan int, 10)
 }
 
 // See https://stackoverflow.com/questions/30226438/generate-all-permutations-in-go

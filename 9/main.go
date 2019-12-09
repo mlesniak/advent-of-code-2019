@@ -77,7 +77,7 @@ func compute(name string, memory []int, in chan int, out chan int) {
 			}
 			if r3 == 2 {
 				m3 = memory[ip+3] + relBase
-				fmt.Println("Saving at", m3)
+				//fmt.Println("Saving at", m3)
 			}
 			//m3 = memory[ip+3]
 			memory[m3] = m1 + m2
@@ -210,7 +210,15 @@ func compute(name string, memory []int, in chan int, out chan int) {
 				m2 = memory[memory[ip+2]+relBase]
 			}
 			var m3 int
-			m3 = memory[ip+3]
+			if r3 == 0 {
+				m3 = memory[ip+3]
+			}
+			if r3 == 1 {
+				panic("TODO")
+			}
+			if r3 == 2 {
+				m3 = memory[ip+3] + relBase
+			}
 			if m1 < m2 {
 				memory[m3] = 1
 			} else {
@@ -240,7 +248,15 @@ func compute(name string, memory []int, in chan int, out chan int) {
 				m2 = memory[memory[ip+2]+relBase]
 			}
 			var m3 int
-			m3 = memory[ip+3]
+			if r3 == 0 {
+				m3 = memory[ip+3]
+			}
+			if r3 == 1 {
+				panic("TODO")
+			}
+			if r3 == 2 {
+				m3 = memory[ip+3] + relBase
+			}
 			if m1 == m2 {
 				memory[m3] = 1
 			} else {

@@ -12,9 +12,60 @@ type coordinate struct {
 	y int
 }
 
+type polar struct {
+	distance float64
+	rho      float64
+}
+
 func main() {
 	asteroids := load()
-	part1(asteroids)
+	//part1(asteroids)
+
+	// Compute polar coordinates for each other asteroid.
+	polars := make(map[coordinate]polar)
+	station := coordinate{31, 20}
+	for asteroid := range asteroids {
+		if station == asteroid {
+			continue
+		}
+		p := computePolar(station, asteroid)
+		polars[asteroid] = p
+		fmt.Println(asteroid, p)
+	}
+
+	// Until all asteroids have been removed.
+	lastRho := math.MaxFloat64
+	i := 1
+	for len(polars) > 0 {
+		// Find smallest rho larger than the last one. Special case at the beginning: rho = 0
+		minRho := math.MaxFloat64
+		for _, p := range polars {
+			if lastRho == math.MaxFloat64 {
+				minRho = 270.0
+				break
+			}
+			if p.rho > lastRho && p.rho < minRho {
+				minRho = p.rho
+			}
+		}
+
+		// Find smallest distance (and thus: asteroid) for the given rho value.
+		minDist := math.MaxFloat64
+		var target coordinate
+		for c, p := range polars {
+			if p.rho != minRho {
+				continue
+			}
+			if p.distance < minDist {
+				minDist = p.distance
+				target = c
+			}
+		}
+
+		fmt.Println(i, "destroyed asteroid is at", target)
+		delete(polars, target)
+		i++
+	}
 }
 
 func part1(asteroids map[coordinate]bool) {
@@ -105,6 +156,15 @@ func computeSlope(origin coordinate, point coordinate) float64 {
 	}
 
 	panic("Case not found")
+}
+
+func computePolar(origin coordinate, point coordinate) polar {
+	rho := computeSlope(origin, point)
+
+	dx := float64(point.x - origin.x)
+	dy := float64(point.y - origin.y)
+	dist := math.Sqrt(dx*dx + dy*dy)
+	return polar{dist, rho}
 }
 
 func load() map[coordinate]bool {

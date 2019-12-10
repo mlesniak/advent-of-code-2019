@@ -17,13 +17,19 @@ type polar struct {
 	rho      float64
 }
 
+func (p polar) String() string {
+	return fmt.Sprintf("dist=%g, degree=%g", p.distance, p.rho)
+}
+
 func main() {
 	asteroids := load()
 	//part1(asteroids)
 
 	// Compute polar coordinates for each other asteroid.
 	polars := make(map[coordinate]polar)
+	//station := coordinate{8, 3}
 	station := coordinate{31, 20}
+	fmt.Println("Station at", station)
 	for asteroid := range asteroids {
 		if station == asteroid {
 			continue
@@ -34,24 +40,24 @@ func main() {
 	}
 
 	// Until all asteroids have been removed.
-	lastRho := math.MaxFloat64
+	lastRho := 0 - math.SmallestNonzeroFloat64
 	i := 1
 	for len(polars) > 0 {
+		//fmt.Println("------------------------------------------------------------------------", i)
 		// Find smallest rho larger than the last one. Special case at the beginning: rho = 0
 		minRho := math.MaxFloat64
 		for _, p := range polars {
-			if lastRho == math.MaxFloat64 {
-				minRho = 270.0
-				break
-			}
 			if p.rho > lastRho && p.rho < minRho {
 				minRho = p.rho
 			}
 		}
+		lastRho = minRho
+		//fmt.Println("lastRho/minRho", lastRho)
 
 		// Find smallest distance (and thus: asteroid) for the given rho value.
 		minDist := math.MaxFloat64
-		var target coordinate
+		// Check why it does not work with *coordinate?
+		target := coordinate{-1, -1}
 		for c, p := range polars {
 			if p.rho != minRho {
 				continue
@@ -61,10 +67,21 @@ func main() {
 				target = c
 			}
 		}
+		nope := coordinate{-1, -1}
+		if target == nope {
+			lastRho = 0 - math.SmallestNonzeroFloat64
+			continue
+			//panic("No target found, resetting")
+		}
 
 		fmt.Println(i, "destroyed asteroid is at", target)
 		delete(polars, target)
 		i++
+
+		//if i >= 25 {
+		//	break
+		//	fmt.Println("Breakpoint")
+		//}
 	}
 }
 
@@ -158,13 +175,18 @@ func computeSlope(origin coordinate, point coordinate) float64 {
 	panic("Case not found")
 }
 
+// Use degree instead of polar coordinates for easier understanding.
 func computePolar(origin coordinate, point coordinate) polar {
-	rho := computeSlope(origin, point)
+	rho := computeSlope(origin, point) * 180 / math.Pi
 
 	dx := float64(point.x - origin.x)
 	dy := float64(point.y - origin.y)
 	dist := math.Sqrt(dx*dx + dy*dy)
-	return polar{dist, rho}
+	f := rho + 90.0
+	if f < 0 {
+		f = f + 360
+	}
+	return polar{dist, f}
 }
 
 func load() map[coordinate]bool {

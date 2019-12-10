@@ -1,3 +1,10 @@
+//
+// NOTE ---------------------------------------------------------------------------------------------
+// This code is ugly and ... works but it not optimized or refactored in any way. Let's hope that we
+// do not have another puzzle of this kind. In this case I'd probably rewrite the whole thing.
+//
+// ¯\_(ツ)_/¯
+//
 package main
 
 import (

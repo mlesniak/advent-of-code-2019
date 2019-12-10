@@ -14,7 +14,7 @@ type coordinate struct {
 
 func main() {
 	asteroids := load()
-	fmt.Println(asteroids)
+	//fmt.Println(asteroids)
 
 	// Determine maximum dimensions.
 	maxX := 0
@@ -28,6 +28,7 @@ func main() {
 		}
 	}
 
+	max := -1
 	// Compute hidden line of sight by computing x and y deltas.
 	for asteroid := range asteroids {
 		//block := coordinate{4,2}
@@ -71,31 +72,15 @@ func main() {
 			// Otherwise, remember slope.
 			slopes[slope] = true
 			//fmt.Println(asteroid, candidate, dx, dy, "slope:", slope)
-
-			// Remove all elements on the path from asteroid + delta
-			//px := asteroid.x
-			//py := asteroid.y
-			//for {
-			//	fmt.Println("  px=", px, "py=", py)
-			//	// Out of bounds?
-			//	if !(px >= 0 && px <= maxX && py >= 0 && py <= maxY) {
-			//		break
-			//	}
-			//	// Delta-inducing asteroid?
-			//	pc := coordinate{x: px, y: py}
-			//	if pc != candidate {
-			//		// Remove from map.
-			//		delete(copy, pc)
-			//	}
-			//
-			//	// Next possible step.
-			//	px += dx
-			//	py += dy
-			//}
 		}
 
-		fmt.Println("***", asteroid, len(copy), " ||", copy)
+		if len(copy) > max {
+			max = len(copy)
+		}
+		//fmt.Println("***", asteroid, len(copy), " ||", copy)
 	}
+
+	fmt.Println(max)
 }
 
 func computeSlope(origin coordinate, point coordinate) float64 {
@@ -127,7 +112,7 @@ func load() map[coordinate]bool {
 
 	asteroids := make(map[coordinate]bool)
 	for row, line := range lines {
-		fmt.Println(row, line)
+		//fmt.Println(row, line)
 		for col, char := range line {
 			if char == '#' {
 				asteroids[coordinate{x: col, y: row}] = true

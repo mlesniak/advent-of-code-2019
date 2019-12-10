@@ -29,9 +29,9 @@ func main() {
 
 	// Compute hidden line of sight by computing x and y deltas.
 	for asteroid := range asteroids {
-		//if asteroid.x != 4 || asteroid.y != 4 {
-		//	continue
-		//}
+		if asteroid.x != 1 || asteroid.y != 0 {
+			continue
+		}
 
 		// Create a copy of the whole map to count visible asteroids.
 		copy := make(map[coordinate]bool)
@@ -49,13 +49,13 @@ func main() {
 			}
 			dx := candidate.x - asteroid.x
 			dy := candidate.y - asteroid.y
-			//fmt.Println(asteroid, candidate, dx, dy)
+			fmt.Println(asteroid, candidate, dx, dy)
 
 			// Remove all elements on the path from asteroid + delta
 			px := asteroid.x
 			py := asteroid.y
 			for {
-				//fmt.Println("  px=", px, "py=", py)
+				fmt.Println("  px=", px, "py=", py)
 				// Out of bounds?
 				if !(px >= 0 && px <= maxX && py >= 0 && py <= maxY) {
 					break

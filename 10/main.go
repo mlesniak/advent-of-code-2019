@@ -14,8 +14,10 @@ type coordinate struct {
 
 func main() {
 	asteroids := load()
-	//fmt.Println(asteroids)
+	part1(asteroids)
+}
 
+func part1(asteroids map[coordinate]bool) {
 	// Determine maximum dimensions.
 	maxX := 0
 	maxY := 0
@@ -27,7 +29,6 @@ func main() {
 			maxY = c.y
 		}
 	}
-
 	max := -1
 	// Compute hidden line of sight by computing x and y deltas.
 	for asteroid := range asteroids {
@@ -75,11 +76,11 @@ func main() {
 		}
 
 		if len(copy) > max {
+			fmt.Println(asteroid, len(copy))
 			max = len(copy)
 		}
 		//fmt.Println("***", asteroid, len(copy), " ||", copy)
 	}
-
 	fmt.Println(max)
 }
 

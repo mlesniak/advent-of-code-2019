@@ -34,7 +34,7 @@ func main() {
 	in := newChannel()
 	out := newChannel()
 	go func() {
-		robot := robot{point{0, 0}, 0}
+		robot := robot{point{size / 2, size / 2}, 0}
 		for {
 			// The actual processing is done here.
 			color := <-out
@@ -63,6 +63,9 @@ func main() {
 			case 9:
 				robot.position.x--
 			}
+
+			// Update camera.
+			in <- panel[robot.position.y][robot.position.x]
 		}
 	}()
 

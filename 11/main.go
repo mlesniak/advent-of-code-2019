@@ -10,32 +10,73 @@ import (
 
 const MemorySize = 1000000
 
+type robot struct {
+	position point
+	rotation int // as hours on clock, e.g. 0, 3, 6, 9
+}
+
+type point struct {
+	x int
+	y int
+}
+
 func main() {
+	// Create panel.
+	size := 1024
+	panel := make([][]int, size)
+	for row := range panel {
+		panel[row] = make([]int, size)
+	}
+	// Painted panels.
+	painted := make(map[point]bool)
+
 	memory := load()
 	in := newChannel()
 	out := newChannel()
 	go func() {
+		robot := robot{point{0, 0}, 0}
 		for {
-			n := <-out
-			fmt.Println(n)
+			// The actual processing is done here.
+			color := <-out
+			direction := <-out
+			panel[robot.position.y][robot.position.x] = color
+			switch direction {
+			case 0:
+				// Left 90 degrees.
+				robot.rotation = (robot.rotation - 3 + 12) % 12
+			case 1:
+				// Right 90n degrees.
+				robot.rotation = (robot.rotation + 3) % 12
+			}
+
+			// Count painted panels.
+			painted[point{robot.position.x, robot.position.y}] = true
+
+			// Update position.
+			switch robot.rotation {
+			case 0:
+				robot.position.y++
+			case 3:
+				robot.position.x++
+			case 6:
+				robot.position.y--
+			case 9:
+				robot.position.x--
+			}
 		}
 	}()
 
-	// Run in Test mode
-	in <- 2
+	// Robot is initially over a black panel.
+	in <- 0
 
 	compute("memory", memory, in, out)
-	//fmt.Println(memory[:10])
-	time.Sleep(time.Second * 2)
+	time.Sleep(time.Second)
+	fmt.Println(len(painted))
 }
 
 func newChannel() chan int {
-	return make(chan int, 10)
-}
-
-func showResult(memory []int) {
-	//fmt.Println(memory)
-	fmt.Println(memory[0])
+	channelSize := 10
+	return make(chan int, channelSize)
 }
 
 func compute(name string, memory []int, in chan int, out chan int) {

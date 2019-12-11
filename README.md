@@ -16,3 +16,4 @@ My solutions written in [Golang](http://golang.org) for [Advent of Code 2019](ht
 | 8   | [Space Image Format](https://adventofcode.com/2019/day/8) | [8](8) |
 | 9   | [Sensor Boost](https://adventofcode.com/2019/day/9) | [9](9) |
 | 10   | [Monitoring Station](https://adventofcode.com/2019/day/10) | [10](10) |
+| 11   | [Space Police](https://adventofcode.com/2019/day/11) | [11](11) |

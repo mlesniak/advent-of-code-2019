@@ -22,7 +22,7 @@ type point struct {
 
 func main() {
 	// Create panel.
-	size := 1024
+	size := 100
 	panel := make([][]int, size)
 	for row := range panel {
 		panel[row] = make([]int, size)
@@ -55,11 +55,11 @@ func main() {
 			// Update position.
 			switch robot.rotation {
 			case 0:
-				robot.position.y++
+				robot.position.y--
 			case 3:
 				robot.position.x++
 			case 6:
-				robot.position.y--
+				robot.position.y++
 			case 9:
 				robot.position.x--
 			}
@@ -69,12 +69,26 @@ func main() {
 		}
 	}()
 
-	// Robot is initially over a black panel.
-	in <- 0
+	// On the second attempt, robot starts on a white panel.
+	in <- 1
 
 	compute("memory", memory, in, out)
 	time.Sleep(time.Second)
-	fmt.Println(len(painted))
+
+	// Paint whole panel.
+	for row := range panel {
+		for col := range panel[row] {
+			var c string
+			switch panel[row][col] {
+			case 0:
+				c = " "
+			case 1:
+				c = "#"
+			}
+			fmt.Print(c)
+		}
+		fmt.Println()
+	}
 }
 
 func newChannel() chan int {

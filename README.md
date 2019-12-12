@@ -17,3 +17,4 @@ My solutions written in [Golang](http://golang.org) for [Advent of Code 2019](ht
 | 9   | [Sensor Boost](https://adventofcode.com/2019/day/9) | [9](9) |
 | 10   | [Monitoring Station](https://adventofcode.com/2019/day/10) | [10](10) |
 | 11   | [Space Police](https://adventofcode.com/2019/day/11) | [11](11) |
+| 12   | [The N-Body Problem](https://adventofcode.com/2019/day/12) | [12](12) |

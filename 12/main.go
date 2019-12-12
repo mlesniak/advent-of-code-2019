@@ -42,6 +42,9 @@ func main() {
 	//const maxSteps = 2772 + 1
 	//const maxSteps = 100
 
+	start := make([]planet, len(planets))
+	copy(start, planets)
+
 loop:
 	for step := 0; step <= maxSteps; step++ {
 		// Remember this state.
@@ -50,7 +53,8 @@ loop:
 		history = append(history, c)
 
 		// Status.
-		showStatus(step, planets)
+		// IDE console is too slow.
+		//showStatus(step, planets)
 
 		if step == maxSteps {
 			// Do not compute velocity for last step.
@@ -67,14 +71,18 @@ loop:
 		}
 
 		// Did we already saw this values?
-		for _, previous := range history {
-			if compare(planets, previous) {
-				showStatus(step+1, planets)
-				fmt.Println("\n\n*** Repeated state after steps:", step+1)
-				break loop
-			}
+		if compare(start, planets) {
+			showStatus(step+1, planets)
+			fmt.Println("\n\n*** Repeated state after steps:", step+1)
+			break loop
 		}
 	}
+
+	// For x, y and z change getPos and getVal, respectively. Then compute their LCM.
+	x := 286332
+	y := 167624
+	z := 96236
+	fmt.Println(LCM(x, y, z))
 }
 
 func showStatus(step int, planets []planet) {
@@ -98,14 +106,25 @@ func computeEnergy() {
 	//fmt.Println("\nENERGY", energy)
 }
 
-// There must be a better way?
+// Compute cycle for a single component. Then, combine each cycle length.
 func compare(current []planet, previous []planet) bool {
+	// Compare only one value
+
 	for idx := range current {
-		if current[idx] != previous[idx] {
+		// Slight optimization, since we know veleocities are 0 at the beginning.
+		if 0 != getVel(previous[idx]) || getPos(current[idx]) != getPos(previous[idx]) {
 			return false
 		}
 	}
 	return true
+}
+
+func getPos(p planet) int {
+	return p.position.z
+}
+
+func getVel(p planet) int {
+	return p.velocity.z
 }
 
 func computeVelocities(planets []planet) []vector {
@@ -175,4 +194,24 @@ func load() []planet {
 	}
 
 	return planets
+}
+
+// See https://siongui.github.io/2017/06/03/go-find-lcm-by-gcd/
+func GCD(a, b int) int {
+	for b != 0 {
+		t := b
+		b = a % b
+		a = t
+	}
+	return a
+}
+
+func LCM(a, b int, integers ...int) int {
+	result := a * b / GCD(a, b)
+
+	for i := 0; i < len(integers); i++ {
+		result = LCM(result, integers[i])
+	}
+
+	return result
 }

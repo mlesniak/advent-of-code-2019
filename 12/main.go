@@ -8,13 +8,54 @@ import (
 )
 
 type planet struct {
-	x, y, z    int
-	vx, vy, vz int
+	position vector
+	velocity vector
+}
+
+func (p planet) String() string {
+	return fmt.Sprintf("pos={%v} vel={%v}", p.position, p.velocity)
+}
+
+type vector struct {
+	x, y, z int
+}
+
+func (v vector) String() string {
+	return fmt.Sprintf("x=%d y=%d z=%d", v.x, v.y, v.z)
+}
+
+func (o vector) add(v vector) {
+	o.x += v.x
+	o.y += v.y
+	o.z += v.z
 }
 
 func main() {
 	planets := load()
 	fmt.Println(planets)
+
+	const maxSteps = 10
+	for step := 0; step <= maxSteps; step++ {
+		// Status.
+		fmt.Println("\nStep", step, strings.Repeat("-", 30))
+		for _, p := range planets {
+			fmt.Println(p)
+		}
+
+		// Update velocity for each planet
+		velocities := computeVelocities(planets)
+
+		// Apply velocity.
+		for idx, v := range velocities {
+			planets[idx].velocity = v
+			planets[idx].position.add(planets[idx].velocity)
+		}
+	}
+}
+
+func computeVelocities(planets []planet) []vector {
+	velocities := make([]vector, len(planets))
+	return velocities
 }
 
 func load() []planet {
@@ -22,7 +63,7 @@ func load() []planet {
 
 	bytes, _ := ioutil.ReadFile("input.txt")
 	lines := strings.Split(string(bytes), "\n")
-	for idx, line := range lines {
+	for _, line := range lines {
 		if line == "" {
 			continue
 		}
@@ -34,7 +75,6 @@ func load() []planet {
 		})
 		// Custom parser just for this format!
 		parts := strings.Split(line, ",")
-		fmt.Println(idx, parts)
 		vec := make([]int, 3)
 		for idx, coord := range parts {
 			anum := strings.Split(coord, "=")[1]
@@ -44,7 +84,7 @@ func load() []planet {
 			}
 			vec[idx] = a
 		}
-		planets = append(planets, planet{x: vec[0], y: vec[1], z: vec[2]})
+		planets = append(planets, planet{position: vector{x: vec[0], y: vec[1], z: vec[2]}})
 	}
 
 	return planets

@@ -24,7 +24,7 @@ func (v vector) String() string {
 	return fmt.Sprintf("x=%d y=%d z=%d", v.x, v.y, v.z)
 }
 
-func (v vector) add(v2 vector) {
+func (v *vector) add(v2 vector) {
 	v.x += v2.x
 	v.y += v2.y
 	v.z += v2.z
@@ -55,7 +55,39 @@ func main() {
 
 func computeVelocities(planets []planet) []vector {
 	velocities := make([]vector, len(planets))
+	for idx := range velocities {
+		velocities[idx] = planets[idx].velocity
+	}
+
+	// Woohooo, O(n^2) ...
+	for i := 0; i < len(planets); i++ {
+		for j := 0; j < len(planets); j++ {
+			if i == j {
+				continue
+			}
+			p1 := planets[i]
+			p2 := planets[j]
+
+			velocities[i].x += computeGravity(p1.position.x, p2.position.x)
+			velocities[i].y += computeGravity(p1.position.y, p2.position.y)
+			velocities[i].z += computeGravity(p1.position.z, p2.position.z)
+		}
+	}
+
 	return velocities
+}
+
+func computeGravity(x1 int, x2 int) int {
+	switch {
+	case x1 == x2:
+		return 0
+	case x1 > x2:
+		return -1
+	case x1 < x2:
+		return +1
+	}
+
+	panic("Not reachable")
 }
 
 func load() []planet {

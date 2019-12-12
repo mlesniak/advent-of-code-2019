@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"math"
 	"strconv"
 	"strings"
 )
@@ -35,13 +34,21 @@ func main() {
 	planets := load()
 	fmt.Println(planets)
 
-	const maxSteps = 1000
+	var history [][]planet
+
+	// We have a lot of time...
+	const maxSteps = 2772 + 1
+	//const maxSteps = 100
+
+loop:
 	for step := 0; step <= maxSteps; step++ {
+		// Remember this state.
+		c := make([]planet, len(planets))
+		copy(c, planets)
+		history = append(history, c)
+
 		// Status.
-		fmt.Println("\nStep", step, strings.Repeat("-", 30))
-		for _, p := range planets {
-			fmt.Println(p)
-		}
+		showStatus(step, planets)
 
 		if step == maxSteps {
 			// Do not compute velocity for last step.
@@ -56,19 +63,47 @@ func main() {
 			planets[idx].velocity = v
 			planets[idx].position.add(planets[idx].velocity)
 		}
-	}
 
-	// Compute energy.
-	energy := 0.0
-	for idx := range planets {
-		p := planets[idx]
-		pose := math.Abs(float64(p.position.x)) + math.Abs(float64(p.position.y)) + math.Abs(float64(p.position.z))
-		vele := math.Abs(float64(p.velocity.x)) + math.Abs(float64(p.velocity.y)) + math.Abs(float64(p.velocity.z))
-		total := pose * vele
-		//fmt.Println(idx, pose, vele, total)
-		energy += total
+		// Did we already saw this values?
+		for _, previous := range history {
+			if compare(planets, previous) {
+				showStatus(step+1, planets)
+				fmt.Println("\n\n*** Repeated state after steps:", step+1)
+				break loop
+			}
+		}
 	}
-	fmt.Println("\nENERGY", energy)
+}
+
+func showStatus(step int, planets []planet) {
+	fmt.Println("\nStep", step, strings.Repeat("-", 30))
+	for _, p := range planets {
+		fmt.Println(p)
+	}
+}
+
+func computeEnergy() {
+	// Compute energy.
+	//energy := 0.0
+	//for idx := range planets {
+	//	p := planets[idx]
+	//	pose := math.Abs(float64(p.position.x)) + math.Abs(float64(p.position.y)) + math.Abs(float64(p.position.z))
+	//	vele := math.Abs(float64(p.velocity.x)) + math.Abs(float64(p.velocity.y)) + math.Abs(float64(p.velocity.z))
+	//	total := pose * vele
+	//	//fmt.Println(idx, pose, vele, total)
+	//	energy += total
+	//}
+	//fmt.Println("\nENERGY", energy)
+}
+
+// There must be a better way?
+func compare(current []planet, previous []planet) bool {
+	for idx := range current {
+		if current[idx] != previous[idx] {
+			return false
+		}
+	}
+	return true
 }
 
 func computeVelocities(planets []planet) []vector {

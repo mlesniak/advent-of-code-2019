@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"math"
 	"strconv"
 	"strings"
 )
@@ -42,6 +43,11 @@ func main() {
 			fmt.Println(p)
 		}
 
+		if step == maxSteps {
+			// Do not compute velocity for last step.
+			continue
+		}
+
 		// Update velocity for each planet
 		velocities := computeVelocities(planets)
 
@@ -51,6 +57,18 @@ func main() {
 			planets[idx].position.add(planets[idx].velocity)
 		}
 	}
+
+	// Compute energy.
+	energy := 0.0
+	for idx := range planets {
+		p := planets[idx]
+		pose := math.Abs(float64(p.position.x)) + math.Abs(float64(p.position.y)) + math.Abs(float64(p.position.z))
+		vele := math.Abs(float64(p.velocity.x)) + math.Abs(float64(p.velocity.y)) + math.Abs(float64(p.velocity.z))
+		total := pose * vele
+		//fmt.Println(idx, pose, vele, total)
+		energy += total
+	}
+	fmt.Println("\nENERGY", energy)
 }
 
 func computeVelocities(planets []planet) []vector {

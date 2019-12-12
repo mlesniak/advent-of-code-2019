@@ -24,10 +24,10 @@ func (v vector) String() string {
 	return fmt.Sprintf("x=%d y=%d z=%d", v.x, v.y, v.z)
 }
 
-func (o vector) add(v vector) {
-	o.x += v.x
-	o.y += v.y
-	o.z += v.z
+func (v vector) add(v2 vector) {
+	v.x += v2.x
+	v.y += v2.y
+	v.z += v2.z
 }
 
 func main() {

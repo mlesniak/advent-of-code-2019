@@ -35,7 +35,7 @@ func main() {
 	planets := load()
 	fmt.Println(planets)
 
-	const maxSteps = 10
+	const maxSteps = 1000
 	for step := 0; step <= maxSteps; step++ {
 		// Status.
 		fmt.Println("\nStep", step, strings.Repeat("-", 30))

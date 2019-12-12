@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"math"
 	"strconv"
 	"strings"
 )
@@ -37,7 +38,8 @@ func main() {
 	var history [][]planet
 
 	// We have a lot of time...
-	const maxSteps = 2772 + 1
+	const maxSteps = math.MaxInt64
+	//const maxSteps = 2772 + 1
 	//const maxSteps = 100
 
 loop:

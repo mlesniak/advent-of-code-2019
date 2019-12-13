@@ -31,8 +31,8 @@ func main() {
 		}
 	}()
 
-	// Necessary?
-	in <- 1
+	// Allow free games.
+	//memory[0] = 0
 
 	compute("memory", memory, in, out)
 	time.Sleep(time.Second)
@@ -72,11 +72,11 @@ func paintCanvas(canvas [][]int) {
 			case 1:
 				c = "█"
 			case 2:
-				c = "⏹"
+				c = "*"
 			case 3:
-				c = "🕳"
+				c = "_"
 			case 4:
-				c = "⚽️"
+				c = "O️"
 			}
 			fmt.Print(c)
 		}

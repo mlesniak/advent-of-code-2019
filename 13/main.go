@@ -1,10 +1,10 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"strconv"
 	"strings"
 	"time"
@@ -16,38 +16,56 @@ func main() {
 	// Create canvas.
 	canvas := make([][]int, 24)
 	for row := range canvas {
-		canvas[row] = make([]int, 50)
+		canvas[row] = make([]int, 44)
 	}
 
 	memory := load()
 	in := newChannel()
 	out := newChannel()
+	score := 0
 	go func() {
 		for {
 			x := <-out
 			y := <-out
 			t := <-out
-			canvas[y][x] = t
+
+			// Score handling.
+			if x == -1 {
+				score = t
+			} else {
+				canvas[y][x] = t
+			}
+			paintCanvas(canvas, score)
+		}
+	}()
+
+	go func() {
+		for {
+			r := bufio.NewReader(os.Stdin)
+			line, _, err := r.ReadLine()
+			if err != nil {
+				panic(err)
+			}
+			command, _ := strconv.Atoi(string(line))
+			in <- command
+			//time.Sleep(time.Millisecond)
 		}
 	}()
 
 	// Allow free games.
-	//memory[0] = 0
+	memory[0] = 2
 
 	compute("memory", memory, in, out)
 	time.Sleep(time.Second)
 
-	// Paint whole canvas.
-	paintCanvas(canvas)
-
-	// Count blocks.
-	blocks := 0
-	forCanvas(canvas, func(x, y, val int) {
-		if val == 2 {
-			blocks++
-		}
-	})
-	println(blocks)
+	//// Count blocks.
+	//blocks := 0
+	//forCanvas(canvas, func(x, y, val int) {
+	//	if val == 2 {
+	//		blocks++
+	//	}
+	//})
+	//println(blocks)
 }
 
 func forCanvas(canvas [][]int, f func(int, int, int)) {
@@ -58,11 +76,8 @@ func forCanvas(canvas [][]int, f func(int, int, int)) {
 	}
 }
 
-func paintCanvas(canvas [][]int) {
-	cmd := exec.Command("clear")
-	//Linux example, its tested
-	cmd.Stdout = os.Stdout
-	cmd.Run()
+func paintCanvas(canvas [][]int, score int) {
+	fmt.Print("\033[2J")
 	for row := range canvas {
 		for col := range canvas[row] {
 			var c string
@@ -82,10 +97,12 @@ func paintCanvas(canvas [][]int) {
 		}
 		fmt.Println()
 	}
+
+	fmt.Println("SCORE", score)
 }
 
 func newChannel() chan int {
-	channelSize := 10
+	channelSize := 16384
 	return make(chan int, channelSize)
 }
 

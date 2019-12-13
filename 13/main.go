@@ -12,18 +12,55 @@ import (
 const MemorySize = 1000000
 
 func main() {
-	// Use backtracking to find the optimal score?
-	inputs := make([]int, 1024)
+	// BETTER IDEA: Stay under the ball by following its left and right movement.
 
+	//// Use backtracking to find the optimal score?
+	//// Or does brute force suffice?
+	//maxScore := math.MinInt64
+	//const inputSize = 10
+	//inputs := make([]int, inputSize)
+	//for i := 0; i < inputSize; i++ {
+	//	inputs[i] = -1
+	//}
+	//
+	//for {
+	//	//fmt.Print("\rTrying out ", inputs, "                     ")
 	score := -1
 	memory, in, out := initializeGame(&score)
-	for _, v := range inputs {
-		in <- v
-	}
-
+	//	for _, v := range inputs {
+	//		in <- v
+	//	}
+	//
 	// Simulate
+	handleManualInput(in)
 	compute("memory", memory, in, out)
-	println(score)
+
+	//if score > maxScore {
+	//	maxScore = score
+	//	fmt.Println("New maxScore", maxScore, "for input", inputs)
+	//}
+	//
+	//	cont := nextInput(inputs)
+	//	if !cont {
+	//		break
+	//	}
+	//}
+}
+
+func nextInput(input []int) bool {
+	idx := 0
+	for {
+		if idx == len(input) {
+			return false
+		}
+		input[idx]++
+		if input[idx] == 2 {
+			input[idx] = -1
+			idx++
+		} else {
+			return true
+		}
+	}
 }
 
 func initializeGame(score *int) ([]int, chan int, chan int) {
@@ -49,7 +86,7 @@ func initializeGame(score *int) ([]int, chan int, chan int) {
 			}
 
 			// Do not paint anything if we simply simulate the game.
-			//paintCanvas(canvas, *score)
+			paintCanvas(canvas, *score)
 		}
 	}()
 	// Allow free games.

@@ -12,39 +12,14 @@ import (
 const MemorySize = 1000000
 
 func main() {
-	// BETTER IDEA: Stay under the ball by following its left and right movement.
+	// Idea: Stay under the ball by following its left and right movement.
 
-	//// Use backtracking to find the optimal score?
-	//// Or does brute force suffice?
-	//maxScore := math.MinInt64
-	//const inputSize = 10
-	//inputs := make([]int, inputSize)
-	//for i := 0; i < inputSize; i++ {
-	//	inputs[i] = -1
-	//}
-	//
-	//for {
-	//	//fmt.Print("\rTrying out ", inputs, "                     ")
 	score := -1
 	memory, in, out := initializeGame(&score)
-	//	for _, v := range inputs {
-	//		in <- v
-	//	}
-	//
-	// Simulate
 	handleManualInput(in)
+	in <- 0
 	compute("memory", memory, in, out)
-
-	//if score > maxScore {
-	//	maxScore = score
-	//	fmt.Println("New maxScore", maxScore, "for input", inputs)
-	//}
-	//
-	//	cont := nextInput(inputs)
-	//	if !cont {
-	//		break
-	//	}
-	//}
+	println(score)
 }
 
 func nextInput(input []int) bool {
@@ -64,6 +39,9 @@ func nextInput(input []int) bool {
 }
 
 func initializeGame(score *int) ([]int, chan int, chan int) {
+	paddlePosition := 20
+	scoreVisited := false
+
 	// Create canvas.
 	canvas := make([][]int, 24)
 	for row := range canvas {
@@ -72,21 +50,49 @@ func initializeGame(score *int) ([]int, chan int, chan int) {
 	memory := load()
 	in := newChannel()
 	out := newChannel()
+	var prevT int
 	go func() {
 		for {
+			// Do not paint anything if we simply simulate the game.
+			if scoreVisited && prevT != 0 {
+				paintCanvas(canvas, *score)
+			}
+
 			x := <-out
 			y := <-out
 			t := <-out
+			prevT = t
+
+			// Track ball movement.
+			// Ball position changed.
+			var nextInput int
+			if t == 4 {
+				currentBallX := x
+				if currentBallX > paddlePosition {
+					nextInput = 1
+				}
+				if currentBallX < paddlePosition {
+					nextInput = -1
+				}
+				if currentBallX == paddlePosition {
+					nextInput = 0
+				}
+				fmt.Println("-CurrentBall", x, "paddlePosition", paddlePosition, "-> input", nextInput)
+				//fmt.Println("-Sending input", nextInput)
+				//in <- nextInput
+			}
+			// Update paddle position.
+			if t == 3 {
+				paddlePosition = x
+			}
 
 			// Score handling.
 			if x == -1 {
 				*score = t
+				scoreVisited = true
 			} else {
 				canvas[y][x] = t
 			}
-
-			// Do not paint anything if we simply simulate the game.
-			paintCanvas(canvas, *score)
 		}
 	}()
 	// Allow free games.
@@ -130,6 +136,7 @@ func forCanvas(canvas [][]int, f func(int, int, int)) {
 }
 
 func paintCanvas(canvas [][]int, score int) {
+	fmt.Println(strings.Repeat("-", 80))
 	for row := range canvas {
 		for col := range canvas[row] {
 			var c string
@@ -137,7 +144,7 @@ func paintCanvas(canvas [][]int, score int) {
 			case 0:
 				c = " "
 			case 1:
-				c = "█"
+				c = "#"
 			case 2:
 				c = "*"
 			case 3:

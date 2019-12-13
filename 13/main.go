@@ -12,10 +12,14 @@ import (
 const MemorySize = 1000000
 
 func main() {
+	// Use backtracking to find the optimal score?
+	inputs := make([]int, 1024)
+
 	score := -1
 	memory, in, out := initializeGame(&score)
-
-	handleManualInput(in)
+	for _, v := range inputs {
+		in <- v
+	}
 
 	// Simulate
 	compute("memory", memory, in, out)

@@ -7,22 +7,30 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 )
 
 const MemorySize = 1000000
 
 func main() {
+	score := -1
+	memory, in, out := initializeGame(&score)
+
+	handleManualInput(in)
+
+	// Simulate
+	compute("memory", memory, in, out)
+	println(score)
+}
+
+func initializeGame(score *int) ([]int, chan int, chan int) {
 	// Create canvas.
 	canvas := make([][]int, 24)
 	for row := range canvas {
 		canvas[row] = make([]int, 44)
 	}
-
 	memory := load()
 	in := newChannel()
 	out := newChannel()
-	score := -1
 	go func() {
 		for {
 			x := <-out
@@ -31,25 +39,18 @@ func main() {
 
 			// Score handling.
 			if x == -1 {
-				score = t
+				*score = t
 			} else {
 				canvas[y][x] = t
 			}
 
 			// Do not paint anything if we simply simulate the game.
-			// paintCanvas(canvas, score)
+			//paintCanvas(canvas, *score)
 		}
 	}()
-
-	//in = handleManualInput(in)
-
 	// Allow free games.
 	memory[0] = 2
-
-	compute("memory", memory, in, out)
-	time.Sleep(time.Second)
-
-	//countBlocks()
+	return memory, in, out
 }
 
 func countBlocks() {

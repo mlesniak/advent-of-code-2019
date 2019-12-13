@@ -35,11 +35,35 @@ func main() {
 			} else {
 				canvas[y][x] = t
 			}
-			// Ignore initial screen updates
-			paintCanvas(canvas, score)
+
+			// Do not paint anything if we simply simulate the game.
+			// paintCanvas(canvas, score)
 		}
 	}()
 
+	//in = handleManualInput(in)
+
+	// Allow free games.
+	memory[0] = 2
+
+	compute("memory", memory, in, out)
+	time.Sleep(time.Second)
+
+	//countBlocks()
+}
+
+func countBlocks() {
+	//// Count blocks.
+	//blocks := 0
+	//forCanvas(canvas, func(x, y, val int) {
+	//	if val == 2 {
+	//		blocks++
+	//	}
+	//})
+	//println(blocks)
+}
+
+func handleManualInput(in chan int) chan int {
 	go func() {
 		for {
 			r := bufio.NewReader(os.Stdin)
@@ -52,21 +76,7 @@ func main() {
 			//time.Sleep(time.Millisecond)
 		}
 	}()
-
-	// Allow free games.
-	memory[0] = 2
-
-	compute("memory", memory, in, out)
-	time.Sleep(time.Second)
-
-	//// Count blocks.
-	//blocks := 0
-	//forCanvas(canvas, func(x, y, val int) {
-	//	if val == 2 {
-	//		blocks++
-	//	}
-	//})
-	//println(blocks)
+	return in
 }
 
 func forCanvas(canvas [][]int, f func(int, int, int)) {

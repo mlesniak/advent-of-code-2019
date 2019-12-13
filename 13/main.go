@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const MemorySize = 1000000
@@ -16,7 +18,7 @@ func main() {
 
 	score := -1
 	memory, in, out := initializeGame(&score)
-	handleManualInput(in)
+	//handleManualInput(in)
 	in <- 0
 	compute("memory", memory, in, out)
 	println(score)
@@ -66,7 +68,7 @@ func initializeGame(score *int) ([]int, chan int, chan int) {
 			// Track ball movement.
 			// Ball position changed.
 			var nextInput int
-			if t == 4 {
+			if t == 4 && scoreVisited {
 				currentBallX := x
 				if currentBallX > paddlePosition {
 					nextInput = 1
@@ -79,7 +81,7 @@ func initializeGame(score *int) ([]int, chan int, chan int) {
 				}
 				fmt.Println("-CurrentBall", x, "paddlePosition", paddlePosition, "-> input", nextInput)
 				//fmt.Println("-Sending input", nextInput)
-				//in <- nextInput
+				in <- nextInput
 			}
 			// Update paddle position.
 			if t == 3 {
@@ -136,6 +138,9 @@ func forCanvas(canvas [][]int, f func(int, int, int)) {
 }
 
 func paintCanvas(canvas [][]int, score int) {
+	cmd := exec.Command("clear") //Linux example, its tested
+	cmd.Stdout = os.Stdout
+	cmd.Run()
 	fmt.Println(strings.Repeat("-", 80))
 	for row := range canvas {
 		for col := range canvas[row] {
@@ -158,6 +163,7 @@ func paintCanvas(canvas [][]int, score int) {
 	}
 
 	fmt.Println("SCORE", score)
+	time.Sleep(time.Millisecond * 24)
 }
 
 func newChannel() chan int {

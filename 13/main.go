@@ -17,10 +17,11 @@ func main() {
 	// Idea: Stay under the ball by following its left and right movement.
 
 	score := -1
-	memory, in, out := initializeGame(&score)
+	memory, in, out, canvas := initializeGame(&score)
 	//handleManualInput(in)
 	in <- 0
 	compute("memory", memory, in, out)
+	paintCanvas(canvas, score)
 	println(score)
 }
 
@@ -40,7 +41,7 @@ func nextInput(input []int) bool {
 	}
 }
 
-func initializeGame(score *int) ([]int, chan int, chan int) {
+func initializeGame(score *int) ([]int, chan int, chan int, [][]int) {
 	paddlePosition := 20
 	scoreVisited := false
 
@@ -57,7 +58,7 @@ func initializeGame(score *int) ([]int, chan int, chan int) {
 		for {
 			// Do not paint anything if we simply simulate the game.
 			if scoreVisited && prevT != 0 {
-				paintCanvas(canvas, *score)
+				//paintCanvas(canvas, *score)
 			}
 
 			x := <-out
@@ -99,7 +100,7 @@ func initializeGame(score *int) ([]int, chan int, chan int) {
 	}()
 	// Allow free games.
 	memory[0] = 2
-	return memory, in, out
+	return memory, in, out, canvas
 }
 
 func countBlocks() {

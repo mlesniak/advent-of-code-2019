@@ -22,7 +22,7 @@ func main() {
 	memory := load()
 	in := newChannel()
 	out := newChannel()
-	score := 0
+	score := -1
 	go func() {
 		for {
 			x := <-out
@@ -35,6 +35,7 @@ func main() {
 			} else {
 				canvas[y][x] = t
 			}
+			// Ignore initial screen updates
 			paintCanvas(canvas, score)
 		}
 	}()
@@ -77,7 +78,6 @@ func forCanvas(canvas [][]int, f func(int, int, int)) {
 }
 
 func paintCanvas(canvas [][]int, score int) {
-	fmt.Print("\033[2J")
 	for row := range canvas {
 		for col := range canvas[row] {
 			var c string
@@ -89,7 +89,7 @@ func paintCanvas(canvas [][]int, score int) {
 			case 2:
 				c = "*"
 			case 3:
-				c = "_"
+				c = "-"
 			case 4:
 				c = "O️"
 			}

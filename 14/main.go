@@ -34,33 +34,37 @@ func main() {
 	storage := make(map[string]int)
 	requirements := []chemical{equations["FUEL"].result}
 	for len(requirements) > 0 {
-		log.Println(strings.Repeat("-", 40))
-		log.Println("Current requirements:", requirements)
+		fmt.Println(strings.Repeat("-", 40))
+		fmt.Println("Current requirements:", requirements)
 		goal := requirements[0]
-		log.Println("Current goal:", goal)
+		fmt.Println("Current goal:", goal)
 		requirements = requirements[1:]
 
 		// Check if requirement depends only on an ore.
 		dependents := equations[goal.name].chemicals
 		if len(dependents) == 1 && dependents[0].name == "ORE" {
-			log.Println("Found basic part", goal)
+			fmt.Println("Found basic part", goal)
 			storage[goal.name] += goal.quantity
 			continue
 		}
 
 		solution := findChemicals(equations, goal)
-		log.Println("Solution for goal:", solution)
+		fmt.Println("Solution for goal:", solution)
+		if solution.result.quantity != goal.quantity {
+			delta := solution.result.quantity - goal.quantity
+			fmt.Println("Spare parts for", goal.name, ":", delta)
+		}
 		requirements = append(requirements, solution.chemicals...)
 	}
 
-	log.Println("--- STORAGE ")
+	fmt.Println("--- STORAGE ")
 	ore := 0
 	for key, value := range storage {
 		o1 := findChemicals(equations, chemical{name: key, quantity: value})
-		log.Println(key, value, o1)
+		fmt.Println(key, value, o1)
 		ore += o1.chemicals[0].quantity
 	}
-	log.Println("Needed ore:", ore)
+	fmt.Println("Needed ore:", ore)
 }
 
 func findChemicals(equations map[string]equation, goal chemical) equation {
@@ -80,6 +84,7 @@ func findChemicals(equations map[string]equation, goal chemical) equation {
 	adaptedEquation.chemicals = make([]chemical, len(solution.chemicals))
 	copy(adaptedEquation.chemicals, solution.chemicals)
 	factor := int(math.Ceil(gq / sq))
+	adaptedEquation.result.quantity = factor * solution.result.quantity
 	for i, _ := range adaptedEquation.chemicals {
 		adaptedEquation.chemicals[i].quantity *= factor
 	}

@@ -9,7 +9,7 @@ import (
 )
 
 type chemical struct {
-	quantity int
+	quantity float64
 	name     string
 }
 
@@ -19,7 +19,7 @@ type equation struct {
 }
 
 func (e chemical) String() string {
-	return fmt.Sprintf("%d:%s", e.quantity, e.name)
+	return fmt.Sprintf("%g:%s", e.quantity, e.name)
 }
 
 func (e equation) String() string {
@@ -31,18 +31,21 @@ func main() {
 	//showEquations(equations)
 
 	// Find all chemicals which need only ORE
-	baseChemical := make(map[string]int)
+	baseChemical := make(map[string]float64)
 	for _, e := range equations {
 		if len(e.chemicals) == 1 && e.chemicals[0].name == "ORE" {
+			fmt.Println("BASE element", e.result.name)
 			baseChemical[e.result.name] = 0
 		}
 	}
 
 	list := []chemical{equations["FUEL"].result}
 	for len(list) > 0 {
+		fmt.Println("\n---------")
+		fmt.Println("LIST:", list)
 		goal := list[0]
 		list = list[1:]
-		fmt.Println("\n---GOAL:", goal)
+		fmt.Println("GOAL:", goal)
 
 		if _, found := baseChemical[goal.name]; found {
 			baseChemical[goal.name] += goal.quantity
@@ -51,14 +54,15 @@ func main() {
 		}
 
 		chemicals := findChemicals(equations, goal)
+		fmt.Println("Adding", chemicals)
 		list = append(list, chemicals.chemicals...)
 	}
 
-	ore := 0
+	ore := 0.0
 	for key, needed := range baseChemical {
 		e := equations[key]
 		q := e.result.quantity
-		factor := int(math.Ceil(float64(needed) / float64(q)))
+		factor := math.Ceil(needed / q)
 		o := e.chemicals[0].quantity * factor
 		ore += o
 		fmt.Println(key, factor, o)
@@ -72,8 +76,23 @@ func findChemicals(equations map[string]equation, goal chemical) equation {
 		panic(fmt.Sprintf("No solution found: %v", goal))
 	}
 
-	// TODO Multiply again.
-	return solution
+	sq := solution.result.quantity
+	gq := goal.quantity
+	if sq == gq {
+		return solution
+	}
+
+	var adaptedEquation equation
+	adaptedEquation.result = goal
+	adaptedEquation.chemicals = make([]chemical, len(solution.chemicals))
+	copy(adaptedEquation.chemicals, solution.chemicals)
+	factor := gq / sq
+	for i, _ := range adaptedEquation.chemicals {
+		adaptedEquation.chemicals[i].quantity *= factor
+	}
+
+	//fmt.Println("*** solution", adaptedEquation, ", goal", goal)
+	return adaptedEquation
 }
 
 func showEquations(equations map[string]equation) {
@@ -111,7 +130,7 @@ func parse(component string) chemical {
 		fmt.Println(s)
 		panic(err)
 	}
-	return chemical{name: ps[1], quantity: q}
+	return chemical{name: ps[1], quantity: float64(q)}
 }
 
 func oldVersion(baseChemical map[string]bool, equations map[string]equation) {

@@ -86,7 +86,7 @@ func findChemicals(equations map[string]equation, goal chemical) equation {
 	adaptedEquation.result = goal
 	adaptedEquation.chemicals = make([]chemical, len(solution.chemicals))
 	copy(adaptedEquation.chemicals, solution.chemicals)
-	factor := gq / sq
+	factor := math.Ceil(gq / sq)
 	for i, _ := range adaptedEquation.chemicals {
 		adaptedEquation.chemicals[i].quantity *= factor
 	}

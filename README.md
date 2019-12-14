@@ -19,3 +19,4 @@ My solutions written in [Golang](http://golang.org) for [Advent of Code 2019](ht
 | 11   | [Space Police](https://adventofcode.com/2019/day/11) | [11](11) |
 | 12   | [The N-Body Problem](https://adventofcode.com/2019/day/12) | [12](12) |
 | 13   | [Care Package](https://adventofcode.com/2019/day/13) | [13](13) |
+| 14   | [Space Stoichiometry](https://adventofcode.com/2019/day/14) | [14](14) |

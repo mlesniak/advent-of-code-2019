@@ -33,8 +33,6 @@ func main() {
 
 	storage := make(map[string]int)
 	requirements := []chemical{equations["FUEL"].result}
-	//requirements := make(map[string]chemical)
-	//requirements["FUEL"] = equations["FUEL"].result
 	for len(requirements) > 0 {
 		fmt.Println(strings.Repeat("-", 40))
 		fmt.Println("Current requirements:", requirements)

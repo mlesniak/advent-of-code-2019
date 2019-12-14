@@ -1,6 +1,5 @@
-1 ROT              => 1 FUEL
+3 WEISS, 2 WEISS   => 1 FUEL
 
-3 WEISS, 2 WEISS   => 1 ROT
 1 BLAU             => 8 WEISS
 
 10 ORE             => 1 BLAU

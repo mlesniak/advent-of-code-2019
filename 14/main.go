@@ -9,7 +9,7 @@ import (
 )
 
 type chemical struct {
-	quantity float64
+	quantity int
 	name     string
 }
 
@@ -19,7 +19,7 @@ type equation struct {
 }
 
 func (e chemical) String() string {
-	return fmt.Sprintf("%g:%s", e.quantity, e.name)
+	return fmt.Sprintf("%d:%s", e.quantity, e.name)
 }
 
 func (e equation) String() string {
@@ -31,13 +31,16 @@ func main() {
 	//showEquations(equations)
 
 	// Find all chemicals which need only ORE
-	baseChemical := make(map[string]float64)
+	baseChemical := make(map[string]int)
 	for _, e := range equations {
 		if len(e.chemicals) == 1 && e.chemicals[0].name == "ORE" {
 			fmt.Println("BASE element", e.result.name)
 			baseChemical[e.result.name] = 0
 		}
 	}
+
+	// Store unused quantities.
+	storage := make(map[string]int)
 
 	list := []chemical{equations["FUEL"].result}
 	for len(list) > 0 {
@@ -48,24 +51,46 @@ func main() {
 		fmt.Println("GOAL:", goal)
 
 		if _, found := baseChemical[goal.name]; found {
-			//chemicals := findChemicals(equations, goal)
-			//fmt.Println("CS:", chemicals)
+			//solution := findChemicals(equations, goal)
+			//fmt.Println("CS:", solution)
 			baseChemical[goal.name] += goal.quantity
 			fmt.Println("BASE found", equations[goal.name].chemicals[0])
 			continue
 		}
 
-		chemicals := findChemicals(equations, goal)
-		fmt.Println("Adding", chemicals)
-		list = append(list, chemicals.chemicals...)
+		// Check how much we can get from storage.
+		inStorage := storage[goal.name]
+		if inStorage > 0 {
+			tmp := goal.quantity
+			if goal.quantity >= inStorage {
+				goal.quantity -= inStorage
+				storage[goal.name] -= tmp
+				fmt.Println("Taking", inStorage, "from storage, left is", storage[goal.name])
+			} else {
+				goal.quantity = 0
+				storage[goal.name] -= tmp
+				fmt.Println("Taking", inStorage, "from storage, left is", storage[goal.name])
+				continue
+			}
+		}
+
+		solution := findChemicals(equations, goal)
+		fmt.Println(solution)
+		if solution.result.quantity > goal.quantity {
+			fmt.Println("Adding to storage for", goal.name, " amount=", solution.result.quantity-goal.quantity)
+			storage[goal.name] += solution.result.quantity - goal.quantity
+		}
+
+		fmt.Println("Adding", solution)
+		list = append(list, solution.chemicals...)
 	}
 
 	fmt.Println("\n\n\nSOLUTION")
-	ore := 0.0
+	ore := 0
 	for key, needed := range baseChemical {
 		e := equations[key]
 		q := e.result.quantity
-		factor := math.Ceil(needed / q)
+		factor := int(math.Ceil(float64(needed) / float64(q)))
 		o := e.chemicals[0].quantity * factor
 		ore += o
 		fmt.Println(key, factor, o)
@@ -79,17 +104,17 @@ func findChemicals(equations map[string]equation, goal chemical) equation {
 		panic(fmt.Sprintf("No solution found: %v", goal))
 	}
 
-	sq := solution.result.quantity
-	gq := goal.quantity
+	sq := float64(solution.result.quantity)
+	gq := float64(goal.quantity)
 	if sq == gq {
 		return solution
 	}
 
 	var adaptedEquation equation
-	adaptedEquation.result = goal
+	adaptedEquation.result = solution.result
 	adaptedEquation.chemicals = make([]chemical, len(solution.chemicals))
 	copy(adaptedEquation.chemicals, solution.chemicals)
-	factor := math.Ceil(gq / sq)
+	factor := int(math.Ceil(gq / sq))
 	for i, _ := range adaptedEquation.chemicals {
 		adaptedEquation.chemicals[i].quantity *= factor
 	}
@@ -135,7 +160,7 @@ func parse(component string) chemical {
 		fmt.Println(s)
 		panic(err)
 	}
-	return chemical{name: ps[1], quantity: float64(q)}
+	return chemical{name: ps[1], quantity: q}
 }
 
 func oldVersion(baseChemical map[string]bool, equations map[string]equation) {

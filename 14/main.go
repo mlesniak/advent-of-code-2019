@@ -8,8 +8,8 @@ import (
 )
 
 type chemical struct {
-	name     string
 	quantity int
+	name     string
 }
 
 type equation struct {
@@ -27,6 +27,33 @@ func (e equation) String() string {
 
 func main() {
 	equations := load()
+	//showEquations(equations)
+
+	// Our buildList state.
+	//buildList := make(map[chemical]bool)
+	//buildList[chemical{1, "FUEL"}] = true
+
+	findChemicals(equations, chemical{1, "FUEL"})
+}
+
+// Brute force with added math.
+func findChemicals(equations []equation, goal chemical) []chemical {
+	var solution *equation
+	for _, eq := range equations {
+		if eq.result.name == goal.name {
+			solution = &eq
+			break
+		}
+	}
+	if solution == nil {
+		panic(fmt.Sprintf("No solution found: %v", goal))
+	}
+
+	fmt.Println(solution)
+	return []chemical{}
+}
+
+func showEquations(equations []equation) {
 	for _, e := range equations {
 		fmt.Println(e)
 	}

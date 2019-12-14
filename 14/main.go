@@ -48,11 +48,33 @@ func main() {
 			continue
 		}
 
+		// Use what we have in storage.
+		if storage[goal.name] > 0 {
+			capacity := storage[goal.name]
+
+			if capacity >= goal.quantity {
+				// Take everything out of storage.
+				fmt.Println("For", goal.name, "taking EVERYTHING out of storage", capacity, "and continuing")
+				storage[goal.name] = capacity - goal.quantity
+				fmt.Println("No need to search for more.")
+				continue
+				// TODO Update something?
+			}
+
+			if capacity < goal.quantity {
+				// Take something out of storage.
+				fmt.Println("For", goal.name, "taking SOME out of storage", capacity, "and continuing")
+				storage[goal.name] = 0
+				goal.quantity = goal.quantity - capacity
+			}
+		}
+
 		solution := findChemicals(equations, goal)
 		fmt.Println("Solution for goal:", solution)
 		if solution.result.quantity != goal.quantity {
 			delta := solution.result.quantity - goal.quantity
 			fmt.Println("Spare parts for", goal.name, ":", delta)
+			storage[goal.name] = delta
 		}
 		requirements = append(requirements, solution.chemicals...)
 	}
@@ -64,7 +86,7 @@ func main() {
 		fmt.Println(key, value, o1)
 		ore += o1.chemicals[0].quantity
 	}
-	fmt.Println("Needed ore:", ore)
+	fmt.Println("Needed ore (13312):", ore)
 }
 
 func findChemicals(equations map[string]equation, goal chemical) equation {

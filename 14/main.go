@@ -28,8 +28,29 @@ func (e equation) String() string {
 }
 
 func main() {
-	ore := computeOreForFuel(2)
-	fmt.Println(ore)
+	m := 1000000000000
+
+	min := 1
+	max := 100000000000
+
+	old := 0
+	for {
+		fuel := (min + max) / 2
+		if fuel == old {
+			break
+		}
+		old = fuel
+		ore := computeOreForFuel(fuel)
+		fmt.Println(ore, fuel, math.Abs(float64(ore)-float64(m)))
+		if ore < 1000000000000 {
+			min = fuel
+		}
+		if ore >= 1000000000000 {
+			max = fuel
+		}
+	}
+	//x := computeOreForFuel(5586022)
+	//fmt.Println(x, math.Abs(float64(m)-float64(x)))
 }
 
 func computeOreForFuel(fuelAmount int) int {
@@ -37,20 +58,20 @@ func computeOreForFuel(fuelAmount int) int {
 	//showEquations(equations)
 	//equations["FUEL"].result.quantity = fuelAmount
 	requirements := []chemical{{name: "FUEL", quantity: fuelAmount}}
-	fmt.Println(requirements)
+	//fmt.Println(requirements)
 
 	storage := make(map[string]int)
 	for len(requirements) > 0 {
-		fmt.Println(strings.Repeat("-", 40))
-		fmt.Println("Current requirements:", requirements)
+		//fmt.Println(strings.Repeat("-", 40))
+		//fmt.Println("Current requirements:", requirements)
 		goal := requirements[0]
-		fmt.Println("Current goal:", goal)
+		//fmt.Println("Current goal:", goal)
 		requirements = requirements[1:]
 
 		// Check if requirement depends only on an ore.
 		dependents := equations[goal.name].chemicals
 		if len(dependents) == 1 && dependents[0].name == "ORE" {
-			fmt.Println("Found basic part", goal)
+			//fmt.Println("Found basic part", goal)
 			storage[goal.name] += goal.quantity
 			continue
 		}
@@ -61,41 +82,41 @@ func computeOreForFuel(fuelAmount int) int {
 
 			if capacity >= goal.quantity {
 				// Take everything out of storage.
-				fmt.Println("For", goal.name, "taking EVERYTHING out of storage", capacity, "and continuing")
+				//fmt.Println("For", goal.name, "taking EVERYTHING out of storage", capacity, "and continuing")
 				storage[goal.name] = capacity - goal.quantity
-				fmt.Println("No need to search for more.")
+				//fmt.Println("No need to search for more.")
 				continue
 			}
 
 			if capacity < goal.quantity {
 				// Take something out of storage.
-				fmt.Println("For", goal.name, "taking SOME out of storage", capacity, "and continuing")
+				//fmt.Println("For", goal.name, "taking SOME out of storage", capacity, "and continuing")
 				storage[goal.name] = 0
 				goal.quantity = goal.quantity - capacity
 			}
 		}
 
 		solution := findChemicals(equations, goal)
-		fmt.Println("Solution for goal:", solution)
+		//fmt.Println("Solution for goal:", solution)
 		if solution.result.quantity != goal.quantity {
 			delta := solution.result.quantity - goal.quantity
-			fmt.Println("Spare parts for", goal.name, ":", delta)
+			//fmt.Println("Spare parts for", goal.name, ":", delta)
 			storage[goal.name] = delta
 		}
 		requirements = append(requirements, solution.chemicals...)
 	}
 
-	fmt.Println("--- STORAGE ")
+	//fmt.Println("--- STORAGE ")
 	ore := 0
 	for key, value := range storage {
 		if !isBasicPart(equations, key) {
 			continue
 		}
 		o1 := findChemicals(equations, chemical{name: key, quantity: value})
-		fmt.Println(key, value, o1, "=", o1.chemicals[0].quantity)
+		//fmt.Println(key, value, o1, "=", o1.chemicals[0].quantity)
 		ore += o1.chemicals[0].quantity
 	}
-	//fmt.Println("Needed ore (13312):", ore)
+	////fmt.Println("Needed ore (13312):", ore)
 	return ore
 }
 

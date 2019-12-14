@@ -28,45 +28,52 @@ func (e equation) String() string {
 
 func main() {
 	equations := load()
-	showEquations(equations)
+	//showEquations(equations)
 
 	// Find all chemicals which need only ORE
-	baseChemical := make(map[string]bool)
+	baseChemical := make(map[string]int)
 	for _, e := range equations {
 		if len(e.chemicals) == 1 && e.chemicals[0].name == "ORE" {
-			baseChemical[e.result.name] = true
+			baseChemical[e.result.name] = 0
 		}
 	}
+
+	list := []chemical{equations["FUEL"].result}
+	for len(list) > 0 {
+		goal := list[0]
+		list = list[1:]
+		fmt.Println("\n---GOAL:", goal)
+
+		if _, found := baseChemical[goal.name]; found {
+			baseChemical[goal.name] += goal.quantity
+			fmt.Println("BASE found", equations[goal.name].chemicals[0])
+			continue
+		}
+
+		chemicals := findChemicals(equations, goal)
+		list = append(list, chemicals.chemicals...)
+	}
+
+	ore := 0
+	for key, needed := range baseChemical {
+		e := equations[key]
+		q := e.result.quantity
+		factor := int(math.Ceil(float64(needed) / float64(q)))
+		o := e.chemicals[0].quantity * factor
+		ore += o
+		fmt.Println(key, factor, o)
+	}
+	fmt.Println("ORE:", ore)
 }
 
-// Brute force with added math.
-func findChemicals(equations []equation, goal chemical) equation {
-	var solution *equation
-	for _, eq := range equations {
-		if eq.result.name == goal.name {
-			solution = &eq
-			break
-		}
-	}
-	if solution == nil {
+func findChemicals(equations map[string]equation, goal chemical) equation {
+	solution, found := equations[goal.name]
+	if found == false {
 		panic(fmt.Sprintf("No solution found: %v", goal))
 	}
 
-	cs := make([]chemical, len(solution.chemicals))
-	copy(cs, solution.chemicals)
-
-	if goal.quantity < solution.result.quantity {
-		// No need to use multiple items.
-		return equation{result: solution.result, chemicals: cs}
-	}
-
-	factor := int(math.Ceil(float64(goal.quantity) / float64(solution.result.quantity)))
-	fmt.Println("Factor", factor, "for", goal)
-	for idx := range cs {
-		cs[idx].quantity *= factor
-	}
-	s := chemical{name: solution.result.name, quantity: solution.result.quantity * factor}
-	return equation{result: s, chemicals: cs}
+	// TODO Multiply again.
+	return solution
 }
 
 func showEquations(equations map[string]equation) {

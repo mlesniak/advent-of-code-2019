@@ -29,11 +29,29 @@ func main() {
 	equations := load()
 	//showEquations(equations)
 
-	// Our buildList state.
-	//buildList := make(map[chemical]bool)
-	//buildList[chemical{1, "FUEL"}] = true
+	ore := 0
+	buildList := []chemical{chemical{1, "FUEL"}}
+	for len(buildList) > 0 {
+		fmt.Println("\n- Step ------------------------")
+		goal := buildList[0]
+		fmt.Println("Goal:", goal)
+		buildList = buildList[1:]
+		//for _, value := range buildList {
+		//	fmt.Println("?", value)
+		//}
 
-	findChemicals(equations, chemical{1, "FUEL"})
+		// If goal is ORE, we simply have it.
+		if goal.name == "ORE" {
+			fmt.Println("ORE needed:", goal)
+			ore += goal.quantity
+			continue
+		}
+		chemicals := findChemicals(equations, goal)
+		fmt.Println("Needed", chemicals)
+		buildList = append(buildList, chemicals...)
+	}
+
+	fmt.Println("ORE needed", ore)
 }
 
 // Brute force with added math.
@@ -49,8 +67,8 @@ func findChemicals(equations []equation, goal chemical) []chemical {
 		panic(fmt.Sprintf("No solution found: %v", goal))
 	}
 
-	fmt.Println(solution)
-	return []chemical{}
+	// TODO Multiply values
+	return solution.chemicals
 }
 
 func showEquations(equations []equation) {

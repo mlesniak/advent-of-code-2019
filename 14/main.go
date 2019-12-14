@@ -27,37 +27,55 @@ func (e equation) String() string {
 
 func main() {
 	equations := load()
-	showEquations(equations)
+	//showEquations(equations)
 
-	//ore := 0
-	//buildList := []chemical{chemical{1, "FUEL"}}
-	//for len(buildList) > 0 {
-	//	fmt.Println("\n- Step ------------------------")
-	//	goal := buildList[0]
-	//	fmt.Println("Goal:", goal)
-	//	buildList = buildList[1:]
-	//	//for _, value := range buildList {
-	//	//	fmt.Println("?", value)
-	//	//}
-	//
-	//	// If goal is ORE, we simply have it.
-	//	if goal.name == "ORE" {
-	//		fmt.Println("ORE needed:", goal)
-	//		ore += goal.quantity
-	//		continue
-	//	}
-	//	chemicals := findChemicals(equations, goal)
-	//	fmt.Println("Needed", chemicals)
-	//	buildList = append(buildList, chemicals...)
-	//}
-	//
-	//fmt.Println("ORE needed", ore)
+	ore := 0
+	storage := make(map[string]int)
+	buildList := []chemical{chemical{1, "FUEL"}}
+	for len(buildList) > 0 {
+		fmt.Println("\n- Step ------------------------")
+		fmt.Println("* LIST", buildList)
 
-	fmt.Println(findChemicals(equations, chemical{1, "FUEL"}))
+		goal := buildList[0]
+		fmt.Println("Goal:", goal)
+		buildList = buildList[1:]
+
+		// If goal is ORE, we simply have it.
+		if goal.name == "ORE" {
+			fmt.Println("ORE needed:", goal)
+			ore += goal.quantity
+			continue
+		}
+
+		// Check storage, if we have some chemicals left.
+		quantity, ok := storage[goal.name]
+		if ok {
+			// Check if we have enough in storage. If yes, simply use it.
+			if quantity >= goal.quantity {
+				storage[goal.name] -= goal.quantity
+				fmt.Println("Using storage", goal.quantity, "leaving", storage[goal.name])
+				continue
+			}
+		}
+
+		solution := findChemicals(equations, goal)
+		fmt.Println("Found", solution)
+		// Update storage.
+		leftOver := solution.result.quantity - goal.quantity
+		if leftOver > 0 {
+			storage[solution.result.name] += leftOver
+			fmt.Println("Storing remaining", leftOver, "of", solution.result.name, "for now", storage[solution.result.name])
+		}
+
+		// Update dependencies.
+		buildList = append(buildList, solution.chemicals...)
+	}
+
+	fmt.Println("\n\n*** ORE needed", ore)
 }
 
 // Brute force with added math.
-func findChemicals(equations []equation, goal chemical) []chemical {
+func findChemicals(equations []equation, goal chemical) equation {
 	var solution *equation
 	for _, eq := range equations {
 		if eq.result.name == goal.name {
@@ -71,10 +89,11 @@ func findChemicals(equations []equation, goal chemical) []chemical {
 
 	cs := make([]chemical, len(solution.chemicals))
 	copy(cs, solution.chemicals)
-	for idx := range cs {
-		cs[idx].quantity *= goal.quantity
-	}
-	return cs
+	// TODO Does not seem right...
+	//for idx := range cs {
+	//	cs[idx].quantity *= goal.quantity
+	//}
+	return *solution
 }
 
 func showEquations(equations []equation) {

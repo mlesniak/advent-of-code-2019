@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
 	"math"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -43,20 +45,20 @@ func main() {
 	storage := make(map[string]int)
 
 	list := []chemical{equations["FUEL"].result}
-	for len(list) > 0 {
+	for onlyOREBuilder(list) {
 		fmt.Println("\n---------")
 		fmt.Println("LIST:", list)
 		goal := list[0]
 		list = list[1:]
 		fmt.Println("GOAL:", goal)
 
-		if _, found := baseChemical[goal.name]; found {
-			//solution := findChemicals(equations, goal)
-			//fmt.Println("CS:", solution)
-			baseChemical[goal.name] += goal.quantity
-			fmt.Println("BASE found for ", goal.name, "with", equations[goal.name].chemicals[0], ", now", baseChemical[goal.name])
-			continue
-		}
+		//if _, found := baseChemical[goal.name]; found {
+		//	//solution := findChemicals(equations, goal)
+		//	//fmt.Println("CS:", solution)
+		//	baseChemical[goal.name] += goal.quantity
+		//	fmt.Println("BASE found for ", goal.name, "with", equations[goal.name].chemicals[0], ", now", baseChemical[goal.name])
+		//	continue
+		//}
 
 		// Check how much we can get from storage.
 		inStorage := storage[goal.name]
@@ -81,8 +83,16 @@ func main() {
 			storage[goal.name] += solution.result.quantity - goal.quantity
 		}
 
-		fmt.Println("Adding", solution)
-		list = append(list, solution.chemicals...)
+		if _, found := baseChemical[goal.name]; found {
+			fmt.Println("Adding BASE", solution)
+			list = append(list, solution.result)
+		} else {
+			fmt.Println("Adding", solution)
+			list = append(list, solution.chemicals...)
+		}
+
+		fmt.Print("<Enter>")
+		bufio.NewReader(os.Stdin).ReadLine()
 	}
 
 	fmt.Println("\n\n\nSOLUTION")
@@ -95,7 +105,11 @@ func main() {
 		ore += o
 		fmt.Println(key, factor, o)
 	}
-	fmt.Println("ORE:", ore)
+	fmt.Println("ORE:", ore, " delta=", 180697-ore)
+}
+
+func onlyOREBuilder(chemicals []chemical) bool {
+	return true
 }
 
 func findChemicals(equations map[string]equation, goal chemical) equation {

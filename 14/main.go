@@ -1,11 +1,10 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"math"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -30,86 +29,34 @@ func (e equation) String() string {
 
 func main() {
 	equations := load()
-	//showEquations(equations)
+	showEquations(equations)
 
-	// Find all chemicals which need only ORE
-	baseChemical := make(map[string]int)
-	for _, e := range equations {
-		if len(e.chemicals) == 1 && e.chemicals[0].name == "ORE" {
-			fmt.Println("BASE element", e.result.name)
-			baseChemical[e.result.name] = 0
-		}
-	}
-
-	// Store unused quantities.
 	storage := make(map[string]int)
+	requirements := []chemical{equations["FUEL"].result}
+	for len(requirements) > 0 {
+		log.Println(strings.Repeat("-", 40))
+		log.Println("Current requirements:", requirements)
+		goal := requirements[0]
+		log.Println("Current goal:", goal)
+		requirements = requirements[1:]
 
-	list := []chemical{equations["FUEL"].result}
-	for onlyOREBuilder(list) {
-		fmt.Println("\n---------")
-		fmt.Println("LIST:", list)
-		goal := list[0]
-		list = list[1:]
-		fmt.Println("GOAL:", goal)
-
-		//if _, found := baseChemical[goal.name]; found {
-		//	//solution := findChemicals(equations, goal)
-		//	//fmt.Println("CS:", solution)
-		//	baseChemical[goal.name] += goal.quantity
-		//	fmt.Println("BASE found for ", goal.name, "with", equations[goal.name].chemicals[0], ", now", baseChemical[goal.name])
-		//	continue
-		//}
-
-		// Check how much we can get from storage.
-		inStorage := storage[goal.name]
-		if inStorage > 0 {
-			tmp := goal.quantity
-			if goal.quantity >= inStorage {
-				goal.quantity -= inStorage
-				storage[goal.name] -= tmp
-				fmt.Println("Taking", inStorage, "from storage, left is", storage[goal.name])
-			} else {
-				goal.quantity = 0
-				storage[goal.name] -= tmp
-				fmt.Println("Taking", inStorage, "from storage, left is", storage[goal.name])
-				continue
-			}
+		// Check if requirement depends only on an ore.
+		dependents := equations[goal.name].chemicals
+		if len(dependents) == 1 && dependents[0].name == "ORE" {
+			log.Println("Found basic part", goal)
+			storage[goal.name] += goal.quantity
+			continue
 		}
 
 		solution := findChemicals(equations, goal)
-		fmt.Println(solution)
-		if solution.result.quantity > goal.quantity {
-			fmt.Println("Adding to storage for", goal.name, " amount=", solution.result.quantity-goal.quantity)
-			storage[goal.name] += solution.result.quantity - goal.quantity
-		}
-
-		if _, found := baseChemical[goal.name]; found {
-			fmt.Println("Adding BASE", solution)
-			list = append(list, solution.result)
-		} else {
-			fmt.Println("Adding", solution)
-			list = append(list, solution.chemicals...)
-		}
-
-		fmt.Print("<Enter>")
-		bufio.NewReader(os.Stdin).ReadLine()
+		log.Println("Solution for goal:", solution)
+		requirements = append(requirements, solution.chemicals...)
 	}
 
-	fmt.Println("\n\n\nSOLUTION")
-	ore := 0
-	for key, needed := range baseChemical {
-		e := equations[key]
-		q := e.result.quantity
-		factor := int(math.Ceil(float64(needed) / float64(q)))
-		o := e.chemicals[0].quantity * factor
-		ore += o
-		fmt.Println(key, factor, o)
+	log.Println("--- STORAGE ")
+	for key, value := range storage {
+		log.Println(key, value)
 	}
-	fmt.Println("ORE:", ore, " delta=", 180697-ore)
-}
-
-func onlyOREBuilder(chemicals []chemical) bool {
-	return true
 }
 
 func findChemicals(equations map[string]equation, goal chemical) equation {
@@ -138,8 +85,9 @@ func findChemicals(equations map[string]equation, goal chemical) equation {
 }
 
 func showEquations(equations map[string]equation) {
+	log.Println("Parsed equations:")
 	for k, e := range equations {
-		fmt.Println(k, "=>", e.chemicals)
+		log.Println(k, "=>", e.chemicals)
 	}
 }
 
@@ -240,4 +188,78 @@ func oldVersion(baseChemical map[string]bool, equations map[string]equation) {
 	////ore += o1.chemicals[0].quantity
 	////}
 	//fmt.Println("*** ORE needed", ore)
+}
+
+func version2(equations map[string]equation) {
+	//// Find all chemicals which need only ORE
+	//baseChemical := make(map[string]int)
+	//for _, e := range equations {
+	//	if len(e.chemicals) == 1 && e.chemicals[0].name == "ORE" {
+	//		fmt.Println("BASE element", e.result.name)
+	//		baseChemical[e.result.name] = 0
+	//	}
+	//}
+	//// Store unused quantities.
+	//storage := make(map[string]int)
+	//list := []chemical{equations["FUEL"].result}
+	//for onlyOREBuilder(list) {
+	//	fmt.Println("\n---------")
+	//	fmt.Println("LIST:", list)
+	//	goal := list[0]
+	//	list = list[1:]
+	//	fmt.Println("GOAL:", goal)
+	//
+	//	//if _, found := baseChemical[goal.name]; found {
+	//	//	//solution := findChemicals(equations, goal)
+	//	//	//fmt.Println("CS:", solution)
+	//	//	baseChemical[goal.name] += goal.quantity
+	//	//	fmt.Println("BASE found for ", goal.name, "with", equations[goal.name].chemicals[0], ", now", baseChemical[goal.name])
+	//	//	continue
+	//	//}
+	//
+	//	// Check how much we can get from storage.
+	//	inStorage := storage[goal.name]
+	//	if inStorage > 0 {
+	//		tmp := goal.quantity
+	//		if goal.quantity >= inStorage {
+	//			goal.quantity -= inStorage
+	//			storage[goal.name] -= tmp
+	//			fmt.Println("Taking", inStorage, "from storage, left is", storage[goal.name])
+	//		} else {
+	//			goal.quantity = 0
+	//			storage[goal.name] -= tmp
+	//			fmt.Println("Taking", inStorage, "from storage, left is", storage[goal.name])
+	//			continue
+	//		}
+	//	}
+	//
+	//	solution := findChemicals(equations, goal)
+	//	fmt.Println(solution)
+	//	if solution.result.quantity > goal.quantity {
+	//		fmt.Println("Adding to storage for", goal.name, " amount=", solution.result.quantity-goal.quantity)
+	//		storage[goal.name] += solution.result.quantity - goal.quantity
+	//	}
+	//
+	//	if _, found := baseChemical[goal.name]; found {
+	//		fmt.Println("Adding BASE", solution)
+	//		list = append(list, solution.result)
+	//	} else {
+	//		fmt.Println("Adding", solution)
+	//		list = append(list, solution.chemicals...)
+	//	}
+	//
+	//	fmt.Print("<Enter>")
+	//	bufio.NewReader(os.Stdin).ReadLine()
+	//}
+	//fmt.Println("\n\n\nSOLUTION")
+	//ore := 0
+	//for key, needed := range baseChemical {
+	//	e := equations[key]
+	//	q := e.result.quantity
+	//	factor := int(math.Ceil(float64(needed) / float64(q)))
+	//	o := e.chemicals[0].quantity * factor
+	//	ore += o
+	//	fmt.Println(key, factor, o)
+	//}
+	//fmt.Println("ORE:", ore, " delta=", 180697-ore)
 }

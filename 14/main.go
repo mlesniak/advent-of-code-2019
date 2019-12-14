@@ -28,11 +28,18 @@ func (e equation) String() string {
 }
 
 func main() {
+	ore := computeOreForFuel(2)
+	fmt.Println(ore)
+}
+
+func computeOreForFuel(fuelAmount int) int {
 	equations := load()
-	showEquations(equations)
+	//showEquations(equations)
+	//equations["FUEL"].result.quantity = fuelAmount
+	requirements := []chemical{{name: "FUEL", quantity: fuelAmount}}
+	fmt.Println(requirements)
 
 	storage := make(map[string]int)
-	requirements := []chemical{equations["FUEL"].result}
 	for len(requirements) > 0 {
 		fmt.Println(strings.Repeat("-", 40))
 		fmt.Println("Current requirements:", requirements)
@@ -88,7 +95,8 @@ func main() {
 		fmt.Println(key, value, o1, "=", o1.chemicals[0].quantity)
 		ore += o1.chemicals[0].quantity
 	}
-	fmt.Println("Needed ore (13312):", ore)
+	//fmt.Println("Needed ore (13312):", ore)
+	return ore
 }
 
 func isBasicPart(equations map[string]equation, name string) bool {

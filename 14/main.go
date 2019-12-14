@@ -48,6 +48,8 @@ func main() {
 		fmt.Println("GOAL:", goal)
 
 		if _, found := baseChemical[goal.name]; found {
+			//chemicals := findChemicals(equations, goal)
+			//fmt.Println("CS:", chemicals)
 			baseChemical[goal.name] += goal.quantity
 			fmt.Println("BASE found", equations[goal.name].chemicals[0])
 			continue
@@ -58,6 +60,7 @@ func main() {
 		list = append(list, chemicals.chemicals...)
 	}
 
+	fmt.Println("\n\n\nSOLUTION")
 	ore := 0.0
 	for key, needed := range baseChemical {
 		e := equations[key]
@@ -122,8 +125,10 @@ func load() map[string]equation {
 	return equations
 }
 
+// TODO Wenn es keine Basics sind, wird nicht reused.
+
 func parse(component string) chemical {
-	s := strings.Trim(component, " ")
+	s := strings.Trim(component, " \t")
 	ps := strings.Split(s, " ")
 	q, err := strconv.Atoi(ps[0])
 	if err != nil {

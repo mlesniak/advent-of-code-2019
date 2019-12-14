@@ -1,6 +1,16 @@
-3 WEISS, 2 WEISS   => 1 FUEL
+25 ROOT_6, 53 ROOT_1, 81 ROOT_7, 68 ROOT_3, 6 BASE_3, 46 BASE_4  => 1 FUEL
 
-1 BLAU             => 8 WEISS
+139 ORE                                             => 4 BASE_1
+144 ORE                                             => 7 BASE_2
+145 ORE                                             => 6 BASE_3
+176 ORE                                             => 6 BASE_4
 
-10 ORE             => 1 BLAU
+2 ROOT_2, 7 ROOT_5, 2 ROOT_3, 11 BASE_3             => 1 ROOT_1
+9 ROOT_2, 37 ROOT_3, 5 BASE_4, 7 BASE_3             => 6 ROOT_6
+5 BASE_3, 7 ROOT_4, 2 ROOT_5, 2 ROOT_2, 19 ROOT_3   => 3 ROOT_7
 
+
+17 BASE_1, 3 BASE_2                                 => 8 ROOT_2
+1 BASE_1                                            => 8 ROOT_3
+1 BASE_4, 6 BASE_3                                  => 4 ROOT_4
+22 BASE_4, 37 BASE_3                                => 5 ROOT_5

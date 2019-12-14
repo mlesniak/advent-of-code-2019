@@ -54,7 +54,7 @@ func main() {
 			//solution := findChemicals(equations, goal)
 			//fmt.Println("CS:", solution)
 			baseChemical[goal.name] += goal.quantity
-			fmt.Println("BASE found", equations[goal.name].chemicals[0])
+			fmt.Println("BASE found for ", goal.name, "with", equations[goal.name].chemicals[0], ", now", baseChemical[goal.name])
 			continue
 		}
 

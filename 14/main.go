@@ -33,6 +33,8 @@ func main() {
 
 	storage := make(map[string]int)
 	requirements := []chemical{equations["FUEL"].result}
+	//requirements := make(map[string]chemical)
+	//requirements["FUEL"] = equations["FUEL"].result
 	for len(requirements) > 0 {
 		fmt.Println(strings.Repeat("-", 40))
 		fmt.Println("Current requirements:", requirements)
@@ -82,11 +84,19 @@ func main() {
 	fmt.Println("--- STORAGE ")
 	ore := 0
 	for key, value := range storage {
+		if !isBasicPart(equations, key) {
+			continue
+		}
 		o1 := findChemicals(equations, chemical{name: key, quantity: value})
-		fmt.Println(key, value, o1)
+		fmt.Println(key, value, o1, "=", o1.chemicals[0].quantity)
 		ore += o1.chemicals[0].quantity
 	}
 	fmt.Println("Needed ore (13312):", ore)
+}
+
+func isBasicPart(equations map[string]equation, name string) bool {
+	dependents := equations[name].chemicals
+	return len(dependents) == 1 && dependents[0].name == "ORE"
 }
 
 func findChemicals(equations map[string]equation, goal chemical) equation {

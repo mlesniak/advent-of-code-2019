@@ -54,9 +54,13 @@ func main() {
 	}
 
 	log.Println("--- STORAGE ")
+	ore := 0
 	for key, value := range storage {
-		log.Println(key, value)
+		o1 := findChemicals(equations, chemical{name: key, quantity: value})
+		log.Println(key, value, o1)
+		ore += o1.chemicals[0].quantity
 	}
+	log.Println("Needed ore:", ore)
 }
 
 func findChemicals(equations map[string]equation, goal chemical) equation {

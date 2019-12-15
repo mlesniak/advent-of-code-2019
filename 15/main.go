@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -22,6 +24,7 @@ const (
 	wall    = 0
 	ok      = 1
 	success = 2
+	drone   = 3
 )
 
 func fromDirection(direction int) string {
@@ -55,7 +58,7 @@ func fromReply(reply int) string {
 type path []int
 
 func debug(a ...interface{}) {
-	//fmt.Println(a...)
+	fmt.Println(a...)
 }
 
 func main() {
@@ -63,16 +66,33 @@ func main() {
 	in := newChannel()
 	out := newChannel()
 
+	height := 10
+	width := 50
+	canvas := make([][]int, height)
+	for row := range canvas {
+		canvas[row] = make([]int, width)
+		for i := 0; i < width; i++ {
+			canvas[row][i] = -1
+		}
+	}
+	y := len(canvas) / 2
+	x := len(canvas[0]) / 2
+
 	path := []int{1}
 	go func() {
 		for {
-			if len(path)%10 == 0 {
-				fmt.Println(len(path))
-			}
-			debug("\nPath", path)
-			//if len(path) > 10 {
-			//	panic("")
+			fmt.Print("?")
+			bufio.NewReader(os.Stdin).ReadLine()
+
+			canvas[y][x] = drone
+			println(x, y)
+			//if len(path)%10 == 0 {
+			paintCanvas(canvas)
 			//}
+			debug("\nPath", path)
+			if len(path) > 90 {
+				panic("")
+			}
 
 			// Walk a step into the given direction.
 			direction := path[len(path)-1]
@@ -83,12 +103,49 @@ func main() {
 			debug("Received reply", fromReply(reply))
 			switch reply {
 			case wall:
+				switch direction {
+				case north:
+					canvas[y-1][x] = wall
+				case south:
+					canvas[y+1][x] = wall
+				case east:
+					canvas[y][x+1] = wall
+				case west:
+					canvas[y][x-1] = wall
+				}
 				path = backtrack(path)
 				debug("Backtracked path:", path)
 			case ok:
-				// Add next path step.
-				path = append(path, 1)
+				canvas[y][x] = ok
+				switch direction {
+				case north:
+					y--
+				case south:
+					y++
+				case east:
+					x++
+				case west:
+					x--
+				}
+				// Add next path step in same direction.
+				path = append(path, path[len(path)-1])
 			case success:
+				canvas[y][x] = ok
+				switch direction {
+				case north:
+					canvas[y-1][x] = ok
+					y--
+				case south:
+					canvas[y+1][x] = ok
+					y++
+				case east:
+					canvas[y][x+1] = ok
+					x++
+				case west:
+					canvas[y][x-1] = ok
+					x--
+				}
+				canvas[y][x] = drone
 				debug(len(path))
 				return
 			}
@@ -116,6 +173,32 @@ func backtrack(path path) path {
 			return path
 		}
 	}
+}
+
+func paintCanvas(canvas [][]int) {
+	//cmd := exec.Command("clear")
+	//cmd.Stdout = os.Stdout
+	//cmd.Run()
+
+	fmt.Println(strings.Repeat("-", 80))
+	for row := range canvas {
+		for col := range canvas[row] {
+			var c string
+			switch canvas[row][col] {
+			case -1:
+				c = "."
+			case ok:
+				c = " "
+			case wall:
+				c = "#"
+			case drone:
+				c = "D"
+			}
+			fmt.Print(c)
+		}
+		fmt.Println()
+	}
+	fmt.Println(strings.Repeat("-", 80))
 }
 
 func newChannel() chan int {

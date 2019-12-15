@@ -26,6 +26,7 @@ func main() {
 	}
 	x := len(ship[0]) / 2
 	y := len(ship) / 2
+	ship[y][x] = 3
 
 	maxLen, err := strconv.Atoi(os.Args[1])
 	if err != nil {
@@ -33,8 +34,8 @@ func main() {
 	}
 	go func() {
 		backtrack(ship, x, y, maxLen, in, out, 0, nil)
-		paintCanvas(ship)
-		os.Exit(1)
+		drawShip(ship)
+		os.Exit(1) // HACK
 	}()
 	compute(memory, in, out)
 }
@@ -43,6 +44,10 @@ func backtrack(ship [][]int, x int, y int, maxLen int, in chan int, out chan int
 	if maxLen == length {
 		return
 	}
+
+	wait()
+	drawShip(ship)
+	fmt.Println(path)
 
 	// Directions:
 	//       1
@@ -56,7 +61,9 @@ func backtrack(ship [][]int, x int, y int, maxLen int, in chan int, out chan int
 		}
 
 		in <- direction
+		fmt.Println("?", direction)
 		reply := <-out
+		fmt.Println(">", reply)
 		switch reply {
 		case 0: // Wall
 			switch direction {
@@ -71,16 +78,7 @@ func backtrack(ship [][]int, x int, y int, maxLen int, in chan int, out chan int
 			}
 			continue
 		case 1: // OK
-			switch direction {
-			case 1:
-				ship[y-1][x] = 1
-			case 2:
-				ship[y+1][x] = 1
-			case 3:
-				ship[y][x-1] = 1
-			case 4:
-				ship[y][x+1] = 1
-			}
+			ship[y][x] = 1
 			switch direction {
 			case 1:
 				y--
@@ -91,8 +89,10 @@ func backtrack(ship [][]int, x int, y int, maxLen int, in chan int, out chan int
 			case 4:
 				x++
 			}
+			ship[y][x] = 3
 
 			backtrack(ship, x, y, maxLen, in, out, length+1, append(path, direction))
+			ship[y][x] = 1
 			opp := opposite(direction)
 			in <- opp
 			r := <-out
@@ -103,16 +103,6 @@ func backtrack(ship [][]int, x int, y int, maxLen int, in chan int, out chan int
 			fmt.Println("FOUND")
 			switch direction {
 			case 1:
-				ship[y-1][x] = 2
-			case 2:
-				ship[y+1][x] = 2
-			case 3:
-				ship[y][x-1] = 2
-			case 4:
-				ship[y][x+1] = 2
-			}
-			switch direction {
-			case 1:
 				y--
 			case 2:
 				y++
@@ -121,6 +111,8 @@ func backtrack(ship [][]int, x int, y int, maxLen int, in chan int, out chan int
 			case 4:
 				x++
 			}
+			ship[y][x] = 2
+
 			backtrack(ship, x, y, maxLen, in, out, length+1, append(path, direction))
 			opp := opposite(direction)
 			in <- opp
@@ -152,6 +144,8 @@ func opposite(dir int) int {
 func wait() {
 	fmt.Print("<ENTER>")
 	bufio.NewReader(os.Stdin).ReadLine()
+
+	//time.Sleep(time.Millisecond * 25)
 }
 
 func compute(memory []int, in chan int, out chan int) {
@@ -425,28 +419,34 @@ func load() ([]int, chan int, chan int) {
 	return memory, in, out
 }
 
-func paintCanvas(ship [][]int) {
+func drawShip(ship [][]int) {
 	x := len(ship[0]) / 2
 	y := len(ship) / 2
 
+	s := 0
+	os.Stdout.WriteString("\x1b[3;J\x1b[H\x1b[2J")
 	for row := range ship {
 		for col := range ship[row] {
 			var c string
 			switch ship[row][col] {
 			case -1:
-				c = " "
+				c = "_"
 			case 0:
 				c = "#"
 			case 1:
 				c = "."
 			case 2:
-				c = "☀️"
+				c = "O️"
+			case 3:
+				c = "S"
+				s++
 			}
 			if col == x && row == y {
-				c = "🤖"
+				c = "X"
 			}
 			fmt.Print(c)
 		}
 		fmt.Println()
 	}
+	fmt.Println("ships", s)
 }

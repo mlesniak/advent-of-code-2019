@@ -9,23 +9,113 @@ import (
 
 const MemorySize = 1000000
 
+// Directions.
+const (
+	north = 1
+	south = 2
+	west  = 3
+	east  = 4
+)
+
+// Replies.
+const (
+	wall    = 0
+	ok      = 1
+	success = 2
+)
+
+func fromDirection(direction int) string {
+	switch direction {
+	case 1:
+		return "north"
+	case 2:
+		return "south"
+	case 3:
+		return "west"
+	case 4:
+		return "east"
+	}
+
+	panic(direction)
+}
+
+func fromReply(reply int) string {
+	switch reply {
+	case 0:
+		return "wall"
+	case 1:
+		return "ok"
+	case 2:
+		return "found"
+	}
+
+	panic(reply)
+}
+
+type path []int
+
+func debug(a ...interface{}) {
+	//fmt.Println(a...)
+}
+
 func main() {
 	memory := load()
 	in := newChannel()
 	out := newChannel()
 
+	path := []int{1}
 	go func() {
 		for {
-			// TODO :-)
-			// Go north
-			in <- 1
+			if len(path)%10 == 0 {
+				fmt.Println(len(path))
+			}
+			debug("\nPath", path)
+			//if len(path) > 10 {
+			//	panic("")
+			//}
+
+			// Walk a step into the given direction.
+			direction := path[len(path)-1]
+			debug("Walking", fromDirection(direction))
+			in <- direction
 
 			reply := <-out
-			fmt.Println(reply)
+			debug("Received reply", fromReply(reply))
+			switch reply {
+			case wall:
+				path = backtrack(path)
+				debug("Backtracked path:", path)
+			case ok:
+				// Add next path step.
+				path = append(path, 1)
+			case success:
+				debug(len(path))
+				return
+			}
 		}
 	}()
 	compute("15", memory, in, out)
 
+}
+
+func backtrack(path path) path {
+	for {
+		if len(path) == 0 {
+			panic("No way found.")
+		}
+
+		// Try to increase last path element
+		path[len(path)-1] = path[len(path)-1] + 1
+		if path[len(path)-1] > east {
+			// We tried all possible routes.
+			// Remove last element and restart with previous one.
+			debug("Backtracking...")
+			path = path[:len(path)-1]
+		} else {
+			// Try out new path.
+			return path
+		}
+	}
 }
 
 func newChannel() chan int {

@@ -1,10 +1,9 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"io/ioutil"
-	"os"
+	"math/rand"
 	"strconv"
 	"strings"
 )
@@ -55,7 +54,21 @@ func fromReply(reply int) string {
 	panic(reply)
 }
 
-type path []int
+type step struct {
+	direction int
+	tried     map[int]bool
+}
+
+func (s step) String() string {
+	keys := make([]string, 0)
+	for key, _ := range s.tried {
+		keys = append(keys, fromDirection(key))
+	}
+
+	return fmt.Sprintf("%s%v", fromDirection(s.direction), keys)
+}
+
+type path []step
 
 func debug(a ...interface{}) {
 	fmt.Println(a...)
@@ -66,8 +79,8 @@ func main() {
 	in := newChannel()
 	out := newChannel()
 
-	height := 10
-	width := 50
+	height := 1000
+	width := 5000
 	canvas := make([][]int, height)
 	for row := range canvas {
 		canvas[row] = make([]int, width)
@@ -78,24 +91,22 @@ func main() {
 	y := len(canvas) / 2
 	x := len(canvas[0]) / 2
 
-	path := []int{1}
+	// A path is an array of steps.
+	startStep := step{north, map[int]bool{north: true}}
+	path := []step{startStep}
 	go func() {
 		for {
 			fmt.Print("?")
-			bufio.NewReader(os.Stdin).ReadLine()
+			//bufio.NewReader(os.Stdin).ReadLine()
 
 			canvas[y][x] = drone
-			println(x, y)
-			//if len(path)%10 == 0 {
-			paintCanvas(canvas)
-			//}
 			debug("\nPath", path)
-			if len(path) > 90 {
-				panic("")
-			}
+			//if len(path) > 90 {
+			//	panic("")
+			//}
 
 			// Walk a step into the given direction.
-			direction := path[len(path)-1]
+			direction := path[len(path)-1].direction
 			debug("Walking", fromDirection(direction))
 			in <- direction
 
@@ -127,8 +138,11 @@ func main() {
 				case west:
 					x--
 				}
+				canvas[y][x] = drone
 				// Add next path step in same direction.
-				path = append(path, path[len(path)-1])
+				s := path[len(path)-1]
+				newStep := step{s.direction, map[int]bool{s.direction: true}}
+				path = append(path, newStep)
 			case success:
 				canvas[y][x] = ok
 				switch direction {
@@ -149,6 +163,8 @@ func main() {
 				debug(len(path))
 				return
 			}
+
+			//paintCanvas(canvas)
 		}
 	}()
 	compute("15", memory, in, out)
@@ -161,16 +177,24 @@ func backtrack(path path) path {
 			panic("No way found.")
 		}
 
-		// Try to increase last path element
-		path[len(path)-1] = path[len(path)-1] + 1
-		if path[len(path)-1] > east {
-			// We tried all possible routes.
-			// Remove last element and restart with previous one.
+		// If possible, choose another option for last element in the path.
+		last := len(path) - 1
+		step := &path[last]
+		if len(step.tried) == 4 {
+			//	// Remove last element and restart with previous one.
 			debug("Backtracking...")
 			path = path[:len(path)-1]
 		} else {
-			// Try out new path.
-			return path
+			// Choose another direction which was not chosen before.
+			for {
+				i := rand.Intn(4) + 1
+				_, found := step.tried[i]
+				if !found {
+					step.tried[i] = true
+					step.direction = i
+					return path
+				}
+			}
 		}
 	}
 }

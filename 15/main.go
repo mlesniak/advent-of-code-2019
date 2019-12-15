@@ -102,6 +102,7 @@ func main() {
 	go func() {
 		for {
 			canvas[y][x] = drone
+			canvas[len(canvas)/2][len(canvas)/2] = 10
 
 			//fmt.Print("?")
 			//bufio.NewReader(os.Stdin).ReadLine()
@@ -239,6 +240,8 @@ func paintCanvas(canvas [][]int) {
 				c = "#"
 			case drone:
 				c = "D"
+			case 10:
+				c = "X"
 			}
 			fmt.Print(c)
 		}

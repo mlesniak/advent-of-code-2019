@@ -16,25 +16,33 @@ func debug(a ...interface{}) {
 func main() {
 	memory, in, out := load()
 
-	//for maxLen := 1; maxLen <= 5; maxLen++ {
-	//	fmt.Println("MaxLen", maxLen)
-	maxLen, _ := strconv.Atoi(os.Args[1])
-	go backtrack(maxLen, in, out, 0, nil)
-	//}
-	compute(memory, in, out)
+	size := 48
+	ship := make([][]int, size)
+	for row := range ship {
+		ship[row] = make([]int, size)
+		for key, _ := range ship[row] {
+			ship[row][key] = -1
+		}
+	}
+	x := len(ship[0]) / 2
+	y := len(ship) / 2
 
+	maxLen, err := strconv.Atoi(os.Args[1])
+	if err != nil {
+		maxLen = 250
+	}
+	go func() {
+		backtrack(ship, x, y, maxLen, in, out, 0, nil)
+		paintCanvas(ship)
+		os.Exit(1)
+	}()
+	compute(memory, in, out)
 }
 
-func backtrack(maxLen int, in chan int, out chan int, length int, path []int) {
-	//fmt.Printf("\r%v%s", path, strings.Repeat(" ", 80))
-	//fmt.Printf("\n%v\n", path)
+func backtrack(ship [][]int, x int, y int, maxLen int, in chan int, out chan int, length int, path []int) {
 	if maxLen == length {
 		return
 	}
-
-	//fmt.Println("\nLength=", length, ", path=", path)
-	//wait()
-	// Iterativ Länge erhöhen um kürzesten Pfad zum Ziel zu finden.
 
 	// Directions:
 	//       1
@@ -44,40 +52,84 @@ func backtrack(maxLen int, in chan int, out chan int, length int, path []int) {
 	for _, direction := range directions {
 		// Do not choose the direct reversal since we would be staying at the previous step.
 		if len(path) > 0 && opposite(path[len(path)-1]) == direction {
-			//fmt.Println("Ignoring reversal", direction)
 			continue
 		}
 
-		//fmt.Println("Choosing", direction)
 		in <- direction
 		reply := <-out
-		//fmt.Println("Reply", reply)
 		switch reply {
 		case 0: // Wall
-			//fmt.Println("Hit wall, next...")
+			switch direction {
+			case 1:
+				ship[y-1][x] = 0
+			case 2:
+				ship[y+1][x] = 0
+			case 3:
+				ship[y][x-1] = 0
+			case 4:
+				ship[y][x+1] = 0
+			}
 			continue
 		case 1: // OK
-			//fmt.Println("Ok, start next step")
-			//fmt.Println("MaxLen received, aborting")
-			backtrack(maxLen, in, out, length+1, append(path, direction))
-			// Go back
+			switch direction {
+			case 1:
+				ship[y-1][x] = 1
+			case 2:
+				ship[y+1][x] = 1
+			case 3:
+				ship[y][x-1] = 1
+			case 4:
+				ship[y][x+1] = 1
+			}
+			switch direction {
+			case 1:
+				y--
+			case 2:
+				y++
+			case 3:
+				x--
+			case 4:
+				x++
+			}
+
+			backtrack(ship, x, y, maxLen, in, out, length+1, append(path, direction))
 			opp := opposite(direction)
-			//fmt.Println("Going back in opposite direction", opp)
 			in <- opp
 			r := <-out
 			if r != 1 {
 				panic("Should not happen!")
 			}
 		case 2: // Energy source
-			newPath := append(path, direction)
-			fmt.Println("Found", len(newPath))
-			fmt.Println("Found", newPath)
-			os.Exit(1)
+			fmt.Println("FOUND")
+			switch direction {
+			case 1:
+				ship[y-1][x] = 2
+			case 2:
+				ship[y+1][x] = 2
+			case 3:
+				ship[y][x-1] = 2
+			case 4:
+				ship[y][x+1] = 2
+			}
+			switch direction {
+			case 1:
+				y--
+			case 2:
+				y++
+			case 3:
+				x--
+			case 4:
+				x++
+			}
+			backtrack(ship, x, y, maxLen, in, out, length+1, append(path, direction))
+			opp := opposite(direction)
+			in <- opp
+			r := <-out
+			if r != 1 {
+				panic("Should not happen!")
+			}
 		}
 	}
-
-	// Tried all directions. Return back to previous step.
-	//fmt.Println("Backtracking...")
 }
 
 func opposite(dir int) int {
@@ -371,4 +423,30 @@ func load() ([]int, chan int, chan int) {
 	in := make(chan int, ChannelSize)
 	out := make(chan int, ChannelSize)
 	return memory, in, out
+}
+
+func paintCanvas(ship [][]int) {
+	x := len(ship[0]) / 2
+	y := len(ship) / 2
+
+	for row := range ship {
+		for col := range ship[row] {
+			var c string
+			switch ship[row][col] {
+			case -1:
+				c = " "
+			case 0:
+				c = "#"
+			case 1:
+				c = "."
+			case 2:
+				c = "☀️"
+			}
+			if col == x && row == y {
+				c = "🤖"
+			}
+			fmt.Print(c)
+		}
+		fmt.Println()
+	}
 }

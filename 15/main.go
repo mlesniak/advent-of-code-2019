@@ -42,6 +42,7 @@ func main() {
 
 func backtrack(ship [][]int, x int, y int, maxLen int, in chan int, out chan int, length int, path []int) {
 	if maxLen == length {
+		fmt.Println("<-")
 		return
 	}
 

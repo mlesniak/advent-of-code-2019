@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -39,9 +40,87 @@ func main() {
 	go func() {
 		backtrack(ship, x, y, maxLen, in, out, 0, nil)
 		drawShip(ship)
+		computeOxygen(ship)
 		os.Exit(1) // HACK
 	}()
 	compute(memory, in, out)
+}
+
+func computeOxygen(ship [][]int) {
+	minutes := 0
+
+	for {
+		todo := findNumberOfPlacesToFill(ship)
+		if todo == 0 {
+			break
+		}
+		minutes++
+		drawShip(ship)
+		fmt.Println(todo)
+		//wait()
+		// Status
+		fmt.Println("Places to fill", todo)
+		filled := findNumberOfPlacesFilled(ship)
+		fmt.Println("Places filled", filled)
+
+		// Copy data to prevent racing.
+		cp := make([][]int, len(ship))
+		for i := range ship {
+			cp[i] = make([]int, len(ship[i]))
+			copy(cp[i], ship[i])
+		}
+
+		// For all oxygen places
+		withShip(ship, func(x, y, val int) {
+			if val == 2 {
+				// Oxygen found.
+				// Look at surrounding places and check if a non-filled space exists.
+				if ship[y+1][x] == 1 {
+					cp[y+1][x] = 2
+				}
+				if ship[y-1][x] == 1 {
+					cp[y-1][x] = 2
+				}
+				if ship[y][x+1] == 1 {
+					cp[y][x+1] = 2
+				}
+				if ship[y][x-1] == 1 {
+					cp[y][x-1] = 2
+				}
+			}
+		})
+		ship = cp
+	}
+
+	fmt.Println("Filling took minutes=", minutes)
+}
+
+func findNumberOfPlacesFilled(ship [][]int) int {
+	filled := 0
+	withShip(ship, func(x, y, val int) {
+		if val == 2 {
+			filled++
+		}
+	})
+	return filled
+}
+
+func findNumberOfPlacesToFill(ship [][]int) int {
+	todo := 0
+	withShip(ship, func(x, y, val int) {
+		if val == 1 {
+			todo++
+		}
+	})
+	return todo
+}
+
+func withShip(ship [][]int, f func(x, y, value int)) {
+	for row := range ship {
+		for col := range ship[row] {
+			f(col, row, ship[row][col])
+		}
+	}
 }
 
 func backtrack(ship [][]int, x int, y int, maxLen int, in chan int, out chan int, length int, path []int) {
@@ -50,7 +129,7 @@ func backtrack(ship [][]int, x int, y int, maxLen int, in chan int, out chan int
 		return
 	}
 
-	wait()
+	//wait()
 	//drawShip(ship)
 	//fmt.Println(path)
 
@@ -173,8 +252,8 @@ func opposite(dir int) int {
 }
 
 func wait() {
-	//fmt.Print("<ENTER>")
-	//bufio.NewReader(os.Stdin).ReadLine()
+	fmt.Print("<ENTER>")
+	bufio.NewReader(os.Stdin).ReadLine()
 
 	//time.Sleep(time.Millisecond * 25)
 }

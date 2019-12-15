@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"strconv"
 	"strings"
@@ -14,7 +15,14 @@ func main() {
 	out := newChannel()
 
 	go func() {
-		// TODO :-)
+		for {
+			// TODO :-)
+			// Go north
+			in <- 1
+
+			reply := <-out
+			fmt.Println(reply)
+		}
 	}()
 	compute("15", memory, in, out)
 

@@ -27,7 +27,7 @@ func main() {
 
 func backtrack(maxLen int, in chan int, out chan int, length int, path []int) {
 	//fmt.Printf("\r%v%s", path, strings.Repeat(" ", 80))
-	fmt.Printf("\n%v\n", path)
+	//fmt.Printf("\n%v\n", path)
 	if maxLen == length {
 		return
 	}
@@ -48,10 +48,10 @@ func backtrack(maxLen int, in chan int, out chan int, length int, path []int) {
 			continue
 		}
 
-		fmt.Println("Choosing", direction)
+		//fmt.Println("Choosing", direction)
 		in <- direction
 		reply := <-out
-		fmt.Println("Reply", reply)
+		//fmt.Println("Reply", reply)
 		switch reply {
 		case 0: // Wall
 			//fmt.Println("Hit wall, next...")
@@ -62,15 +62,17 @@ func backtrack(maxLen int, in chan int, out chan int, length int, path []int) {
 			backtrack(maxLen, in, out, length+1, append(path, direction))
 			// Go back
 			opp := opposite(direction)
-			fmt.Println("Going back in opposite direction", opp)
+			//fmt.Println("Going back in opposite direction", opp)
 			in <- opp
 			r := <-out
 			if r != 1 {
 				panic("Should not happen!")
 			}
 		case 2: // Energy source
-			//fmt.Println("Found", len(path))
-			panic("found")
+			newPath := append(path, direction)
+			fmt.Println("Found", len(newPath))
+			fmt.Println("Found", newPath)
+			os.Exit(1)
 		}
 	}
 

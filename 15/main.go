@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -16,7 +15,7 @@ func debug(a ...interface{}) {
 func main() {
 	memory, in, out := load()
 
-	size := 48
+	size := 50
 	ship := make([][]int, size)
 	for row := range ship {
 		ship[row] = make([]int, size)
@@ -27,10 +26,15 @@ func main() {
 	x := len(ship[0]) / 2
 	y := len(ship) / 2
 	ship[y][x] = 3
+	//fmt.Println("begin", x, y)
 
-	maxLen, err := strconv.Atoi(os.Args[1])
-	if err != nil {
-		maxLen = 250
+	maxLen := 650
+	if len(os.Args) > 1 {
+		m, err := strconv.Atoi(os.Args[1])
+		maxLen = m
+		if err != nil {
+			panic(err)
+		}
 	}
 	go func() {
 		backtrack(ship, x, y, maxLen, in, out, 0, nil)
@@ -42,13 +46,18 @@ func main() {
 
 func backtrack(ship [][]int, x int, y int, maxLen int, in chan int, out chan int, length int, path []int) {
 	if maxLen == length {
-		fmt.Println("<-")
+		//fmt.Println("<-")
 		return
 	}
 
 	wait()
-	drawShip(ship)
-	fmt.Println(path)
+	//drawShip(ship)
+	//fmt.Println(path)
+
+	//             1
+	//           3 3 3 3 3 3
+	//			   2
+	//
 
 	// Directions:
 	//       1
@@ -57,14 +66,16 @@ func backtrack(ship [][]int, x int, y int, maxLen int, in chan int, out chan int
 	directions := []int{1, 2, 3, 4}
 	for _, direction := range directions {
 		// Do not choose the direct reversal since we would be staying at the previous step.
+		//fmt.Println("@path=", path)
 		if len(path) > 0 && opposite(path[len(path)-1]) == direction {
+			//fmt.Println("not choosing reversal")
 			continue
 		}
 
 		in <- direction
-		fmt.Println("?", direction)
+		//fmt.Println("?", direction)
 		reply := <-out
-		fmt.Println(">", reply)
+		//fmt.Println(">", reply)
 		switch reply {
 		case 0: // Wall
 			switch direction {
@@ -95,13 +106,22 @@ func backtrack(ship [][]int, x int, y int, maxLen int, in chan int, out chan int
 			backtrack(ship, x, y, maxLen, in, out, length+1, append(path, direction))
 			ship[y][x] = 1
 			opp := opposite(direction)
+			switch opp {
+			case 1:
+				y--
+			case 2:
+				y++
+			case 3:
+				x--
+			case 4:
+				x++
+			}
 			in <- opp
 			r := <-out
 			if r != 1 {
 				panic("Should not happen!")
 			}
 		case 2: // Energy source
-			fmt.Println("FOUND")
 			switch direction {
 			case 1:
 				y--
@@ -116,6 +136,16 @@ func backtrack(ship [][]int, x int, y int, maxLen int, in chan int, out chan int
 
 			backtrack(ship, x, y, maxLen, in, out, length+1, append(path, direction))
 			opp := opposite(direction)
+			switch opp {
+			case 1:
+				y--
+			case 2:
+				y++
+			case 3:
+				x--
+			case 4:
+				x++
+			}
 			in <- opp
 			r := <-out
 			if r != 1 {
@@ -143,8 +173,8 @@ func opposite(dir int) int {
 }
 
 func wait() {
-	fmt.Print("<ENTER>")
-	bufio.NewReader(os.Stdin).ReadLine()
+	//fmt.Print("<ENTER>")
+	//bufio.NewReader(os.Stdin).ReadLine()
 
 	//time.Sleep(time.Millisecond * 25)
 }
@@ -424,8 +454,7 @@ func drawShip(ship [][]int) {
 	x := len(ship[0]) / 2
 	y := len(ship) / 2
 
-	s := 0
-	os.Stdout.WriteString("\x1b[3;J\x1b[H\x1b[2J")
+	//os.Stdout.WriteString("\x1b[3;J\x1b[H\x1b[2J")
 	for row := range ship {
 		for col := range ship[row] {
 			var c string
@@ -440,7 +469,6 @@ func drawShip(ship [][]int) {
 				c = "O️"
 			case 3:
 				c = "S"
-				s++
 			}
 			if col == x && row == y {
 				c = "X"
@@ -449,5 +477,4 @@ func drawShip(ship [][]int) {
 		}
 		fmt.Println()
 	}
-	fmt.Println("ships", s)
 }

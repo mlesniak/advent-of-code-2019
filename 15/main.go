@@ -16,18 +16,25 @@ func debug(a ...interface{}) {
 func main() {
 	memory, in, out := load()
 
-	go backtrack(in, out, 0, nil)
+	//for maxLen := 1; maxLen <= 5; maxLen++ {
+	//	fmt.Println("MaxLen", maxLen)
+	maxLen, _ := strconv.Atoi(os.Args[1])
+	go backtrack(maxLen, in, out, 0, nil)
+	//}
 	compute(memory, in, out)
 
 }
 
-func backtrack(in chan int, out chan int, length int, path []int) {
-	fmt.Println("\nLength=", length, ", path=", path)
-	wait()
-	// Iterativ Länge erhöhen um kürzesten Pfad zum Ziel zu finden.
-	if length > 20 {
+func backtrack(maxLen int, in chan int, out chan int, length int, path []int) {
+	//fmt.Printf("\r%v%s", path, strings.Repeat(" ", 80))
+	fmt.Printf("\n%v\n", path)
+	if maxLen == length {
 		return
 	}
+
+	//fmt.Println("\nLength=", length, ", path=", path)
+	//wait()
+	// Iterativ Länge erhöhen um kürzesten Pfad zum Ziel zu finden.
 
 	// Directions:
 	//       1
@@ -37,28 +44,38 @@ func backtrack(in chan int, out chan int, length int, path []int) {
 	for _, direction := range directions {
 		// Do not choose the direct reversal since we would be staying at the previous step.
 		if len(path) > 0 && opposite(path[len(path)-1]) == direction {
-			fmt.Println("Ignoring reversal", direction)
+			//fmt.Println("Ignoring reversal", direction)
 			continue
 		}
 
 		fmt.Println("Choosing", direction)
 		in <- direction
 		reply := <-out
+		fmt.Println("Reply", reply)
 		switch reply {
 		case 0: // Wall
-			fmt.Println("Hit wall, next...")
+			//fmt.Println("Hit wall, next...")
 			continue
 		case 1: // OK
-			fmt.Println("Ok, start next step")
-			backtrack(in, out, length+1, append(path, direction))
+			//fmt.Println("Ok, start next step")
+			//fmt.Println("MaxLen received, aborting")
+			backtrack(maxLen, in, out, length+1, append(path, direction))
+			// Go back
+			opp := opposite(direction)
+			fmt.Println("Going back in opposite direction", opp)
+			in <- opp
+			r := <-out
+			if r != 1 {
+				panic("Should not happen!")
+			}
 		case 2: // Energy source
-			fmt.Println("Found")
+			//fmt.Println("Found", len(path))
 			panic("found")
 		}
 	}
 
 	// Tried all directions. Return back to previous step.
-	fmt.Println("Backtracking...")
+	//fmt.Println("Backtracking...")
 }
 
 func opposite(dir int) int {

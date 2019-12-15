@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"math/rand"
+	"os"
+	"os/exec"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const MemorySize = 1000000
@@ -79,8 +81,11 @@ func main() {
 	in := newChannel()
 	out := newChannel()
 
-	height := 1000
-	width := 5000
+	//height := 20
+	//width := 20
+	height := 50
+	width := 50
+
 	canvas := make([][]int, height)
 	for row := range canvas {
 		canvas[row] = make([]int, width)
@@ -96,12 +101,13 @@ func main() {
 	path := []step{startStep}
 	go func() {
 		for {
-			fmt.Print("?")
-			//bufio.NewReader(os.Stdin).ReadLine()
-
 			canvas[y][x] = drone
-			debug("\nPath", path)
-			//if len(path) > 90 {
+
+			//fmt.Print("?")
+			//bufio.NewReader(os.Stdin).ReadLine()
+			//debug("\nPath", path)
+			fmt.Println(len(path))
+			//if len(path) > 20 {
 			//	panic("")
 			//}
 
@@ -125,7 +131,7 @@ func main() {
 					canvas[y][x-1] = wall
 				}
 				path = backtrack(path)
-				debug("Backtracked path:", path)
+				debug("Backtracked...")
 			case ok:
 				canvas[y][x] = ok
 				switch direction {
@@ -139,9 +145,9 @@ func main() {
 					x--
 				}
 				canvas[y][x] = drone
-				// Add next path step in same direction.
+				// Add next path step in same direction and ignore way back.
 				s := path[len(path)-1]
-				newStep := step{s.direction, map[int]bool{s.direction: true}}
+				newStep := step{s.direction, map[int]bool{reverse(s.direction): true}}
 				path = append(path, newStep)
 			case success:
 				canvas[y][x] = ok
@@ -161,14 +167,30 @@ func main() {
 				}
 				canvas[y][x] = drone
 				debug(len(path))
+				panic("found")
 				return
 			}
 
-			//paintCanvas(canvas)
+			paintCanvas(canvas)
 		}
 	}()
 	compute("15", memory, in, out)
 
+}
+
+func reverse(direction int) int {
+	switch direction {
+	case north:
+		return south
+	case south:
+		return north
+	case east:
+		return west
+	case west:
+		return east
+	}
+
+	panic(direction)
 }
 
 func backtrack(path path) path {
@@ -186,8 +208,7 @@ func backtrack(path path) path {
 			path = path[:len(path)-1]
 		} else {
 			// Choose another direction which was not chosen before.
-			for {
-				i := rand.Intn(4) + 1
+			for i := 1; i <= 4; i++ {
 				_, found := step.tried[i]
 				if !found {
 					step.tried[i] = true
@@ -200,11 +221,12 @@ func backtrack(path path) path {
 }
 
 func paintCanvas(canvas [][]int) {
-	//cmd := exec.Command("clear")
-	//cmd.Stdout = os.Stdout
-	//cmd.Run()
+	cmd := exec.Command("clear")
+	cmd.Stdout = os.Stdout
+	cmd.Run()
 
-	fmt.Println(strings.Repeat("-", 80))
+	fmt.Println("\033[2J")
+
 	for row := range canvas {
 		for col := range canvas[row] {
 			var c string
@@ -222,7 +244,7 @@ func paintCanvas(canvas [][]int) {
 		}
 		fmt.Println()
 	}
-	fmt.Println(strings.Repeat("-", 80))
+	time.Sleep(time.Millisecond * 10)
 }
 
 func newChannel() chan int {

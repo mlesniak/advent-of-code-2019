@@ -81,10 +81,8 @@ func main() {
 	in := newChannel()
 	out := newChannel()
 
-	//height := 20
-	//width := 20
-	height := 50
-	width := 50
+	height := 45
+	width := 45
 
 	canvas := make([][]int, height)
 	for row := range canvas {
@@ -167,9 +165,8 @@ func main() {
 					x--
 				}
 				canvas[y][x] = drone
-				debug(len(path))
+				debug("***", x, y, len(path))
 				panic("found")
-				return
 			}
 
 			paintCanvas(canvas)

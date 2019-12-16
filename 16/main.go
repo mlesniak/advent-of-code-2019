@@ -8,20 +8,45 @@ import (
 )
 
 func main() {
-	//input := load()
+	input := load()
 	//fmt.Println(input)
 
-	// Repeat by modulo operation
-	pattern := computePattern(2)
-	fmt.Println(pattern)
+	//input := []int{1, 2, 3, 4, 5, 6, 7, 8}
+	//fmt.Println(input)
 
-	input := []int{1, 2, 3, 4, 5, 6, 7, 8}
-	output := make([]int, len(input))
-	for i := 0; i < len(output); i++ {
-		fmt.Println("Computing for position:", i)
-		output[i] = input[i]
+	steps := 100
+	for i := 0; i < steps; i++ {
+		output := compute(input)
+		fmt.Println(output)
+		input = output
 	}
-	fmt.Println(output)
+
+	fmt.Println(input[:8])
+}
+
+func compute(input []int) []int {
+	output := make([]int, len(input))
+	for pos := 0; pos < len(output); pos++ {
+		pattern := computePattern(pos)
+		for i := 0; i < len(input); i++ {
+			factor := getFactor(pattern, i)
+			output[pos] += input[i] * factor
+		}
+		output[pos] %= 10
+		if output[pos] < 0 {
+			output[pos] *= -1
+		}
+	}
+	return output
+}
+
+//1, 0, -1, 0, 1, 0, -1, 0, 1, 0, -1,
+func getFactor(pattern []int, pos int) int {
+	if pos+1 < len(pattern) {
+		return pattern[pos+1]
+	}
+
+	return pattern[(pos+1)%len(pattern)]
 }
 
 func computePattern(position int) []int {

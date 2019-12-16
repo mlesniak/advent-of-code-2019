@@ -17,7 +17,7 @@ func main() {
 	steps := 100
 	for i := 0; i < steps; i++ {
 		output := compute(input)
-		fmt.Println(output)
+		//fmt.Println(output)
 		input = output
 	}
 

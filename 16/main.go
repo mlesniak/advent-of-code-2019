@@ -9,6 +9,10 @@ import (
 )
 
 func main() {
+	//x := []int{9,8,7,6,5,4,3,2,1,0,9,8,7,6,5,4,3,2,1,0}
+	//fmt.Println(x[7:7+8])
+	//return
+
 	times := 10000
 	base := load()
 	input := make([]int, 0) // Initialize before?
@@ -19,31 +23,35 @@ func main() {
 		input = append(input, base...)
 	}
 
+	// [5 9 7 5 0 5 3]
+	//offset := input[:7]
+	//fmt.Println(offset)
+	offset := 5975053
+
 	steps := 100
 	for i := 0; i < steps; i++ {
 		log.Println("Tick", i)
-		output := compute(input)
+		output := compute(offset, input)
 		input = output
 	}
 
-	fmt.Println(input[:8])
+	fmt.Println(input[offset : offset+8])
 }
 
-func compute(input []int) []int {
+func compute(offset int, input []int) []int {
 	output := make([]int, len(input))
-	for pos := 0; pos < len(output); pos++ {
-		if pos%10 == 0 {
-			log.Println("Pos=", pos)
+
+	for pos := offset; pos < len(output); pos++ {
+		if pos%10000 == 0 {
+			log.Println(pos)
 		}
-		pattern := computePattern(pos)
-		for i := 0; i < len(input); i++ {
-			factor := getFactor(pattern, i)
-			output[pos] += input[i] * factor
+		sum := 0
+		for i := offset; i < len(input); i++ {
+			sum += input[i]
 		}
+
+		output[pos] = sum
 		output[pos] %= 10
-		if output[pos] < 0 {
-			output[pos] *= -1
-		}
 	}
 	return output
 }

@@ -14,6 +14,14 @@ func main() {
 	// Repeat by modulo operation
 	pattern := computePattern(2)
 	fmt.Println(pattern)
+
+	input := []int{1, 2, 3, 4, 5, 6, 7, 8}
+	output := make([]int, len(input))
+	for i := 0; i < len(output); i++ {
+		fmt.Println("Computing for position:", i)
+		output[i] = input[i]
+	}
+	fmt.Println(output)
 }
 
 func computePattern(position int) []int {

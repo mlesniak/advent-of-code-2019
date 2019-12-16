@@ -3,21 +3,26 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"strconv"
 	"strings"
 )
 
 func main() {
-	input := load()
-	//fmt.Println(input)
+	times := 10000
+	base := load()
+	input := make([]int, 0) // Initialize before?
+	fmt.Println(times * len(base))
 
-	//input := []int{1, 2, 3, 4, 5, 6, 7, 8}
-	//fmt.Println(input)
+	// Create list repeated 10000 times.
+	for i := 0; i < times; i++ {
+		input = append(input, base...)
+	}
 
 	steps := 100
 	for i := 0; i < steps; i++ {
+		log.Println("Tick", i)
 		output := compute(input)
-		//fmt.Println(output)
 		input = output
 	}
 
@@ -27,6 +32,9 @@ func main() {
 func compute(input []int) []int {
 	output := make([]int, len(input))
 	for pos := 0; pos < len(output); pos++ {
+		if pos%10 == 0 {
+			log.Println("Pos=", pos)
+		}
 		pattern := computePattern(pos)
 		for i := 0; i < len(input); i++ {
 			factor := getFactor(pattern, i)

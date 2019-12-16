@@ -41,15 +41,9 @@ func main() {
 func compute(offset int, input []int) []int {
 	output := make([]int, len(input))
 
-	for pos := offset; pos < len(output); pos++ {
-		if pos%10000 == 0 {
-			log.Println(pos)
-		}
-		sum := 0
-		for i := offset; i < len(input); i++ {
-			sum += input[i]
-		}
-
+	sum := 0
+	for pos := len(output) - 1; pos >= offset; pos-- {
+		sum += input[pos]
 		output[pos] = sum
 		output[pos] %= 10
 	}

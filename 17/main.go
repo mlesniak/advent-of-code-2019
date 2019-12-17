@@ -341,32 +341,3 @@ func load() ([]int, chan int, chan int, *bool) {
 	stop := false
 	return memory, in, out, &stop
 }
-
-func drawShip(ship [][]int) {
-	x := len(ship[0]) / 2
-	y := len(ship) / 2
-
-	//os.Stdout.WriteString("\x1b[3;J\x1b[H\x1b[2J")
-	for row := range ship {
-		for col := range ship[row] {
-			var c string
-			switch ship[row][col] {
-			case -1:
-				c = "_"
-			case 0:
-				c = "#"
-			case 1:
-				c = "."
-			case 2:
-				c = "O️"
-			case 3:
-				c = "S"
-			}
-			if col == x && row == y {
-				c = "X"
-			}
-			fmt.Print(c)
-		}
-		fmt.Println()
-	}
-}

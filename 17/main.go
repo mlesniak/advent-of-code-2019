@@ -33,7 +33,8 @@ func main() {
 	go func() {
 		renderAndStoreView(stop, in, out, view)
 
-		computePath(view)
+		path := computePath(view)
+		fmt.Println(path)
 
 		//in.send("A,B,C")       // Code
 		//in.send("R,8,L,10,R,8,R,12") // A
@@ -56,7 +57,7 @@ func main() {
 	compute(memory, in, out, stop)
 }
 
-func computePath(view [][]int) {
+func computePath(view [][]int) string {
 	sx, sy, _ := findView(view, func(x int, y int, value int) bool {
 		return value == int('^')
 	})
@@ -96,7 +97,7 @@ func computePath(view [][]int) {
 		}
 	}
 
-	fmt.Println(path)
+	return path
 }
 
 func right(dx int, dy int) (int, int) {

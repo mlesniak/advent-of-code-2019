@@ -24,3 +24,4 @@ After I have the correct solution, I leave the source code as it is, ... to clea
 | 14   | [Space Stoichiometry](https://adventofcode.com/2019/day/14) | [14](14) | Automatic equation solving, binary search |
 | 15   | [Oxygen System](https://adventofcode.com/2019/day/15) | [15](15) | Backtracking, cellular automata |
 | 16   | [Flawed Frequency Transmission](https://adventofcode.com/2019/day/16) | [16](16) | Mathemtical analysis (less programming) |
+| 17   | [Set and Forget](https://adventofcode.com/2019/day/16) | [17](17) | Visualization, path tracing and grammar builder |

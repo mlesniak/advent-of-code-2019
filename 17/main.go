@@ -5,38 +5,67 @@ import (
 	"io/ioutil"
 	"strconv"
 	"strings"
+	"time"
 )
+
+type channel chan int
+
+func (c channel) send(msg string) {
+	if len(msg) > 20 {
+		panic(fmt.Sprintf("Message too long len(%s)=%d", msg, len(msg)))
+	}
+	for i := 0; i < len(msg); i++ {
+		r := msg[i]
+		c <- int(r)
+	}
+	c <- 10 // Newline
+}
 
 func main() {
 	memory, in, out, stop := load()
 
-	width := 45
-	height := 37
+	width := 50
+	height := 50
 	view := make([][]int, height)
 	for row := range view {
 		view[row] = make([]int, width)
 	}
 	go func() {
-		y := 0
-		x := 0
+		renderAndStoreView(stop, in, out, view)
+		in.send("A")       // Code
+		in.send("R,8,L,5") // A
+		in.send("5")       // B
+		in.send("5")       // C
+		in.send("y")
 		for {
 			if *stop {
-				fmt.Println()
 				break
 			}
-			c := <-out
-			fmt.Print(string(c))
-
-			if c == 10 {
-				y++
-				x = 0
-			} else {
-				view[y][x] = c
-				x++
-			}
+			renderAndStoreView(stop, in, out, view)
 		}
 	}()
 	compute(memory, in, out, stop)
+}
+
+func renderAndStoreView(stop *bool, in chan int, out chan int, view [][]int) {
+	y := 0
+	x := 0
+	for y <= 37 {
+		c := <-out
+		if c > 255 {
+			fmt.Println(c)
+		} else {
+			fmt.Print(string(c))
+		}
+
+		if c == 10 {
+			y++
+			x = 0
+		} else {
+			view[y][x] = c
+			x++
+		}
+	}
 }
 
 func findIntersections(view [][]int, height int, width int) {
@@ -67,7 +96,7 @@ func findIntersections(view [][]int, height int, width int) {
 	fmt.Println("Sum:", sum)
 }
 
-func compute(memory []int, in chan int, out chan int, stop *bool) {
+func compute(memory []int, in channel, out channel, stop *bool) {
 	relBase := 0
 
 	for ip := 0; ip < len(memory); {
@@ -312,6 +341,9 @@ func compute(memory []int, in chan int, out chan int, stop *bool) {
 			relBase += m1
 			ip += 2
 		case 99:
+			for len(out) > 0 {
+				time.Sleep(time.Millisecond * 100)
+			}
 			*stop = true
 			return
 		default:
@@ -320,9 +352,9 @@ func compute(memory []int, in chan int, out chan int, stop *bool) {
 	}
 }
 
-func load() ([]int, chan int, chan int, *bool) {
+func load() ([]int, channel, channel, *bool) {
 	const MemorySize = 1000000
-	const ChannelSize = 1
+	const ChannelSize = 16384
 
 	bytes, _ := ioutil.ReadFile("input.txt")
 	lines := strings.Split(string(bytes), ",")

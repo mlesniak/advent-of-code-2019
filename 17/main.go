@@ -32,19 +32,52 @@ func main() {
 	}
 	go func() {
 		renderAndStoreView(stop, in, out, view)
-		in.send("A")       // Code
-		in.send("R,8,L,5") // A
-		in.send("5")       // B
-		in.send("5")       // C
-		in.send("y")
-		for {
-			if *stop {
-				break
-			}
-			renderAndStoreView(stop, in, out, view)
-		}
+
+		computePath(view)
+
+		//in.send("A,B,C")       // Code
+		//in.send("R,8,L,10,R,8,R,12") // A
+		//in.send("R,8,L,8,L,12,R,8")       // B
+		//in.send("L,10,R,8,L,12,L,10")       // C
+		//in.send("n")
+		//for {
+		//	if *stop {
+		//		break
+		//	}
+		//	renderAndStoreView(stop, in, out, view)
+		//
+		//	// Final result
+		//	//num := <- out
+		//	//if num > 255 {
+		//	//	fmt.Println(num)
+		//	//}
+		//}
 	}()
 	compute(memory, in, out, stop)
+}
+
+func computePath(view [][]int) {
+	sx, sy, _ := findView(view, func(x int, y int, value int) bool {
+		if value == int('^') {
+			return true
+		}
+
+		return false
+	})
+	fmt.Println(sx, sy)
+}
+
+func findView(view [][]int, f func(int, int, int) bool) (int, int, int) {
+	for y := range view {
+		for x := range view[y] {
+			abort := f(x, y, view[y][x])
+			if abort {
+				return x, y, view[y][x]
+			}
+		}
+	}
+
+	return -1, -1, -1
 }
 
 func renderAndStoreView(stop *bool, in chan int, out chan int, view [][]int) {

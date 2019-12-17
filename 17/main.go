@@ -43,6 +43,7 @@ func main() {
 	compute(memory, in, out, stop)
 
 	// Find all intersections
+	sum := 0
 	for y := range view {
 		// In our case, there are no 'T'-shapes at the edges, simplifying computation.
 		if y == 0 || y == height-1 {
@@ -54,13 +55,18 @@ func main() {
 			}
 
 			// Find only #
-			if view[y][x] != int('#') {
+			scaffold := int('#')
+			if view[y][x] != scaffold {
 				continue
 			}
 
-			fmt.Println(x, y)
+			// Check surrounding of a scaffold.
+			if view[y-1][x] == scaffold && view[y+1][x] == scaffold && view[y][x-1] == scaffold && view[y][x+1] == scaffold {
+				sum += x * y
+			}
 		}
 	}
+	fmt.Println("Sum:", sum)
 }
 
 func compute(memory []int, in chan int, out chan int, stop *bool) {

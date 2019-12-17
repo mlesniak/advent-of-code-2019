@@ -12,14 +12,20 @@ func debug(a ...interface{}) {
 }
 
 func main() {
+	// 46 width, 37 height
 	memory, in, out, stop := load()
 
 	go func() {
+		line := 0
 		for {
 			if *stop {
 				break
 			}
 			c := <-out
+			line++
+			if c == 10 {
+				fmt.Println(line)
+			}
 			fmt.Print(string(c))
 		}
 	}()

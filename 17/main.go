@@ -36,6 +36,10 @@ func main() {
 		path := computePath(view)
 		//fmt.Println(path)
 		p, a, b, c := findProgram(path)
+		fmt.Println("p=", p)
+		fmt.Println("a=", a)
+		fmt.Println("b=", b)
+		fmt.Println("c=", c)
 
 		// Part 1 --------------------------------------------
 		in.send(p) // Code
@@ -69,7 +73,77 @@ func findProgram(path string) (string, string, string, string) {
 	// B=W,U,Y,Z        R,12,R,8,L,8,L,12
 	// C=Z,V,Y          L,12,L,10,L,8
 
-	return "A,B,A,C,A,B,C,C,A,B", "R,8,L,10,R,8", "R,12,R,8,L,8,L,12", "L,12,L,10,L,8"
+	// Tokenize:
+	tokens := strings.Split(path[:len(path)-1], ",")
+	mapping := make(map[string]string)
+	revMapping := make(map[string]string)
+	num := 1
+	e := ""
+	for i := 0; i < len(tokens); i += 2 {
+		t := tokens[i] + tokens[i+1]
+		v, found := mapping[t]
+		if !found {
+			mapping[t] = strconv.Itoa(num)
+			revMapping[mapping[t]] = t
+			e += mapping[t]
+			num++
+		} else {
+			e += v
+		}
+	}
+	//fmt.Println("token", e)
+
+	for i1 := 2; i1 < len(e)-2; i1++ { // Minimal length: 2
+		a := e[0:i1]
+		e1 := strings.ReplaceAll(e, a, "")
+		//fmt.Println("a=", a, "=>", e1)
+
+		for i2 := 2; i2 < len(e1)-2; i2++ { // Minimal length: 2
+			b := e1[0:i2]
+			e2 := strings.ReplaceAll(e1, b, "")
+			//fmt.Println("b=", b, "=>", e2)
+
+			for i3 := 2; i3 < len(e2)-2; i3++ { // Minimal length: 2
+				c := e2[0:i3]
+				e3 := strings.ReplaceAll(e2, c, "")
+				//fmt.Println("c=", c, "=>", e3)
+				if len(e3) == 0 {
+					//fmt.Println(a)
+					ap := ""
+					for i := 0; i < len(a); i++ {
+						code := revMapping[strconv.Itoa(int(a[i])-48)]
+						ap += string(code[0]) + "," + code[1:] + ","
+					}
+					ap = ap[:len(ap)-1]
+					//fmt.Println(b)
+					bp := ""
+					for i := 0; i < len(b); i++ {
+						code := revMapping[strconv.Itoa(int(b[i])-48)]
+						bp += string(code[0]) + "," + code[1:] + ","
+					}
+					bp = bp[:len(bp)-1]
+					//fmt.Println(c)
+					cp := ""
+					for i := 0; i < len(c); i++ {
+						code := revMapping[strconv.Itoa(int(c[i])-48)]
+						cp += string(code[0]) + "," + code[1:] + ","
+					}
+					cp = cp[:len(cp)-1]
+					//fmt.Println(ap,bp,cp)
+
+					p1 := strings.ReplaceAll(e, a, "A")
+					p1 = strings.ReplaceAll(p1, b, "B")
+					p1 = strings.ReplaceAll(p1, c, "C")
+					p1 = strings.Join(strings.Split(p1, ""), ",")
+
+					return p1, ap, bp, cp
+				}
+			}
+		}
+	}
+
+	panic("No combination found")
+	//return "A,B,A,C,A,B,C,C,A,B", "R,8,L,10,R,8", "R,12,R,8,L,8,L,12", "L,12,L,10,L,8"
 }
 
 func computePath(view [][]int) string {
@@ -84,7 +158,7 @@ func computePath(view [][]int) string {
 	x := sx
 	y := sy
 	for {
-		//fmt.Println(path)
+		////fmt.Println(path)
 		//fmt.Println(x+dx, y+dy)
 
 		steps := 0

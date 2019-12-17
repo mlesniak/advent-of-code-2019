@@ -12,21 +12,31 @@ func debug(a ...interface{}) {
 }
 
 func main() {
-	// 46 width, 37 height
 	memory, in, out, stop := load()
 
+	width := 45
+	height := 37
+	view := make([][]int, height)
+	for row := range view {
+		view[row] = make([]int, width)
+	}
 	go func() {
-		line := 0
+		y := 0
+		x := 0
 		for {
 			if *stop {
 				break
 			}
 			c := <-out
-			line++
-			if c == 10 {
-				fmt.Println(line)
-			}
 			fmt.Print(string(c))
+
+			if c == 10 {
+				y++
+				x = 0
+			} else {
+				view[y][x] = c
+				x++
+			}
 		}
 	}()
 	compute(memory, in, out, stop)

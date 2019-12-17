@@ -25,6 +25,7 @@ func main() {
 		x := 0
 		for {
 			if *stop {
+				fmt.Println()
 				break
 			}
 			c := <-out
@@ -40,6 +41,26 @@ func main() {
 		}
 	}()
 	compute(memory, in, out, stop)
+
+	// Find all intersections
+	for y := range view {
+		// In our case, there are no 'T'-shapes at the edges, simplifying computation.
+		if y == 0 || y == height-1 {
+			continue
+		}
+		for x := range view[y] {
+			if x == 0 || x == width-1 {
+				continue
+			}
+
+			// Find only #
+			if view[y][x] != int('#') {
+				continue
+			}
+
+			fmt.Println(x, y)
+		}
+	}
 }
 
 func compute(memory []int, in chan int, out chan int, stop *bool) {

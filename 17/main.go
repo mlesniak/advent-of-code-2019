@@ -58,13 +58,66 @@ func main() {
 
 func computePath(view [][]int) {
 	sx, sy, _ := findView(view, func(x int, y int, value int) bool {
-		if value == int('^') {
-			return true
-		}
-
-		return false
+		return value == int('^')
 	})
-	fmt.Println(sx, sy)
+
+	// We cheat a bit by setting first value.
+	path := "R,"
+	dx := 1
+	dy := 0
+	x := sx
+	y := sy
+	for {
+		//fmt.Println(path)
+		//fmt.Println(x+dx, y+dy)
+
+		steps := 0
+		// Check if the next step in a direction is still a tile?
+		for y+dy < len(view) && y+dy >= 0 && view[y+dy][x+dx] == '#' {
+			steps++
+			x += dx
+			y += dy
+		}
+		path += strconv.Itoa(steps) + ","
+
+		// Try turning left and check view.
+		dx, dy = left(dx, dy)
+		if y+dy < len(view) && y+dy >= 0 && view[y+dy][x+dx] == '#' {
+			path += "L,"
+		} else {
+			dx, dy = left(dx, dy)
+			dx, dy = left(dx, dy)
+			if view[y+dy][x+dx] == '#' {
+				path += "R,"
+			} else {
+				// Finished
+				break
+			}
+		}
+	}
+
+	fmt.Println(path)
+}
+
+func right(dx int, dy int) (int, int) {
+	d1, d2 := left(dx, dy)
+	d1, d2 = left(d1, d2)
+	return left(d1, d2)
+}
+
+func left(dx int, dy int) (int, int) {
+	switch {
+	case dx == 1 && dy == 0:
+		return 0, -1
+	case dx == 0 && dy == -1:
+		return -1, 0
+	case dx == -1 && dy == 0:
+		return 0, 1
+	case dx == 0 && dy == 1:
+		return 1, 0
+	}
+
+	panic("Should not happen")
 }
 
 func findView(view [][]int, f func(int, int, int) bool) (int, int, int) {

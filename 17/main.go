@@ -34,27 +34,42 @@ func main() {
 		renderAndStoreView(stop, in, out, view)
 
 		path := computePath(view)
-		fmt.Println(path)
+		//fmt.Println(path)
+		p, a, b, c := findProgram(path)
 
-		//in.send("A,B,C")       // Code
-		//in.send("R,8,L,10,R,8,R,12") // A
-		//in.send("R,8,L,8,L,12,R,8")       // B
-		//in.send("L,10,R,8,L,12,L,10")       // C
-		//in.send("n")
-		//for {
-		//	if *stop {
-		//		break
-		//	}
-		//	renderAndStoreView(stop, in, out, view)
-		//
-		//	// Final result
-		//	//num := <- out
-		//	//if num > 255 {
-		//	//	fmt.Println(num)
-		//	//}
-		//}
+		// Part 1 --------------------------------------------
+		in.send(p) // Code
+		in.send(a) // A
+		in.send(b) // B
+		in.send(c) // C
+		in.send("n")
+		for {
+			if *stop {
+				break
+			}
+			renderAndStoreView(stop, in, out, view)
+
+			// Final result
+			//num := <- out
+			//if num > 255 {
+			//	fmt.Println(num)
+			//}
+		}
+		// Part 1 --------------------------------------------
 	}()
 	compute(memory, in, out, stop)
+}
+
+func findProgram(path string) (string, string, string, string) {
+	// R,8,L,10,R,8,R,12,R,8,L,8,L,12,R,8,L,10,R,8,L,12,L,10,L,8,R,8,L,10,R,8,R,12,R,8,L,8,L,12,L,12,L,10,L,8,L,12,L,10,L,8,R,8,L,10,R,8,R,12,R,8,L,8,L,12,
+
+	// P=					U,V,U,W,U,Y,Z,U,V,U,Z,V,Y,U,V,U,W,U,Y,Z,Z,V,Y,Z,V,Y,U,V,U,W,U,Y,Z,
+	// P=								A,B,A,C,A,B,C,C,A,B,
+	// A=U,V,U			R,8,L,10,R,8
+	// B=W,U,Y,Z        R,12,R,8,L,8,L,12
+	// C=Z,V,Y          L,12,L,10,L,8
+
+	return "A,B,A,C,A,B,C,C,A,B", "R,8,L,10,R,8", "R,12,R,8,L,8,L,12", "L,12,L,10,L,8"
 }
 
 func computePath(view [][]int) string {

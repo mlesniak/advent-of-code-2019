@@ -7,10 +7,6 @@ import (
 	"strings"
 )
 
-func debug(a ...interface{}) {
-	fmt.Println(a...)
-}
-
 func main() {
 	memory, in, out, stop := load()
 
@@ -41,7 +37,9 @@ func main() {
 		}
 	}()
 	compute(memory, in, out, stop)
+}
 
+func findIntersections(view [][]int, height int, width int) {
 	// Find all intersections
 	sum := 0
 	for y := range view {
@@ -322,10 +320,10 @@ func compute(memory []int, in chan int, out chan int, stop *bool) {
 	}
 }
 
-const MemorySize = 1000000
-const ChannelSize = 1
-
 func load() ([]int, chan int, chan int, *bool) {
+	const MemorySize = 1000000
+	const ChannelSize = 1
+
 	bytes, _ := ioutil.ReadFile("input.txt")
 	lines := strings.Split(string(bytes), ",")
 	memory := make([]int, MemorySize)

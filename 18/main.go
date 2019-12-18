@@ -8,7 +8,25 @@ import (
 
 func main() {
 	input := load()
-	fmt.Println(input)
+
+	// Find starting point.
+	var x, y int
+	withInput(input, func(_x, _y, value int) {
+		if value == '@' {
+			x = _x
+			y = _y
+		}
+	})
+
+	fmt.Println(x, y)
+}
+
+func withInput(input [][]int, f func(x, y, value int)) {
+	for row := range input {
+		for col := range input[row] {
+			f(col, row, input[row][col])
+		}
+	}
 }
 
 func load() [][]int {

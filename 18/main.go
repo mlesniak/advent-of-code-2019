@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"unicode"
 )
 
 func main() {
@@ -41,9 +42,30 @@ func main() {
 			}
 		})
 	}
+	fmt.Println(doors)
 
 	// Implement simple BFS to find all possible keys.
-	bfs(view, x, y, 'a')
+	// Idea: If a not found, try b but then a again...
+	sum := 0
+	for key := 'a'; key <= 'z'; key++ {
+		if _, found := keys[int(key)]; found == false {
+			continue
+		}
+
+		fmt.Println("Searching", string(key), ", starting at", x, y)
+		result := bfs(view, x, y, int(key))
+		fmt.Println("->", result)
+
+		// Unlock corresponding door.
+		doorPosition := doors[int(unicode.ToUpper(rune(key)))]
+		view[doorPosition.y][doorPosition.x] = '.'
+
+		// Start search for next key.
+		x = result.position.x
+		y = result.position.y
+		sum += result.length
+	}
+	fmt.Println("Length", sum)
 }
 
 type path struct {
@@ -51,7 +73,7 @@ type path struct {
 	length   int
 }
 
-func bfs(view [][]int, x int, y int, key int) int {
+func bfs(view [][]int, x int, y int, key int) path {
 	start := coordinate{x, y}
 	candidates := []path{{start, 0}}
 	history := make(map[coordinate]bool)
@@ -86,8 +108,7 @@ func bfs(view [][]int, x int, y int, key int) int {
 
 		// Check if found.
 		if view[position.y][position.x] == key {
-			fmt.Println("Found", candidate)
-			return candidate.length
+			return candidate
 		}
 
 		// Generate new candidates.
@@ -97,7 +118,7 @@ func bfs(view [][]int, x int, y int, key int) int {
 		addCandidate(history, &candidates, position.x, position.y-1, candidate.length)
 	}
 
-	return -1
+	return path{coordinate{0, 0}, -1}
 }
 
 func addCandidate(history map[coordinate]bool, candidates *[]path, x int, y int, len int) {

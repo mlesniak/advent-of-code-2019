@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
-	"unicode"
 )
 
 func main() {
@@ -21,18 +20,36 @@ func main() {
 		}
 	})
 
-	// Find coordinates of every key.
-	keys := make(map[int]coordinate)
-	for c := 'a'; c <= 'z'; c++ {
-		withInput(view, func(x, y, value int) {
-			ic := int(c)
-			if value == ic {
-				keys[ic] = coordinate{x, y}
-			}
-		})
-	}
+	keys := findKeys(view)
+	//doors := findDoors(view)
 
-	// Find coordinates of every door, necessary for opening (=removing) a door.
+	// Implement simple BFS to find all possible key-to-key path lengths.
+	sum := 0
+	for key := 'a'; key <= 'z'; key++ {
+		if _, found := keys[int(key)]; found == false {
+			continue
+		}
+		for key2 := 'a'; key2 <= 'z'; key2++ {
+			ik2 := int(key2)
+			if _, found := keys[ik2]; found == false {
+				continue
+			}
+			if key2 == key {
+				continue
+			}
+
+			// Start code here.
+			p1 := keys[int(key)]
+			p := bfs(view, p1.x, p1.y, ik2)
+			if p.length != -1 {
+				fmt.Println(string(key), string(key2), p)
+			}
+		}
+	}
+	fmt.Println("Length", sum)
+}
+
+func findDoors(view [][]int) map[int]coordinate {
 	doors := make(map[int]coordinate)
 	for c := 'A'; c <= 'Z'; c++ {
 		withInput(view, func(x, y, value int) {
@@ -42,40 +59,54 @@ func main() {
 			}
 		})
 	}
-	fmt.Println(doors)
+	return doors
+}
 
-	// Implement simple BFS to find all possible keys.
-	// Idea: If a not found, try b but then a again...
-	sum := 0
-	for key := 'a'; key <= 'z'; key++ {
-		if _, found := keys[int(key)]; found == false {
-			continue
-		}
-
-		fmt.Println("Searching", string(key), ", starting at", x, y)
-		result := bfs(view, x, y, int(key))
-		fmt.Println("->", result)
-
-		// Unlock corresponding door.
-		doorPosition := doors[int(unicode.ToUpper(rune(key)))]
-		view[doorPosition.y][doorPosition.x] = '.'
-
-		// Start search for next key.
-		x = result.position.x
-		y = result.position.y
-		sum += result.length
+func findKeys(view [][]int) map[int]coordinate {
+	keys := make(map[int]coordinate)
+	for c := 'a'; c <= 'z'; c++ {
+		withInput(view, func(x, y, value int) {
+			ic := int(c)
+			if value == ic {
+				keys[ic] = coordinate{x, y}
+			}
+		})
 	}
-	fmt.Println("Length", sum)
+	return keys
+}
+
+func simpleSearchFromAtoZ() {
+	//fmt.Println("Searching", string(key), ", starting at", x, y)
+	//result := bfs(view, x, y, int(key))
+	//fmt.Println("->", result)
+	//
+	//// Unlock corresponding door.
+	//doorPosition := doors[int(unicode.ToUpper(rune(key)))]
+	//view[doorPosition.y][doorPosition.x] = '.'
+	//
+	//// Start search for next key.
+	//x = result.position.x
+	//y = result.position.y
+	//sum += result.length
 }
 
 type path struct {
-	position coordinate
-	length   int
+	position  coordinate
+	length    int
+	keysOnWay []int
+}
+
+func newPath(c coordinate) path {
+	return path{
+		position:  c,
+		length:    0,
+		keysOnWay: []int{},
+	}
 }
 
 func bfs(view [][]int, x int, y int, key int) path {
 	start := coordinate{x, y}
-	candidates := []path{{start, 0}}
+	candidates := []path{newPath(start)}
 	history := make(map[coordinate]bool)
 
 	for len(candidates) > 0 {
@@ -102,28 +133,35 @@ func bfs(view [][]int, x int, y int, key int) path {
 			continue
 		}
 		// Ignore doors.
-		if view[position.y][position.x] >= 'A' && view[position.y][position.x] <= 'Z' {
-			continue
-		}
+		//if view[position.y][position.x] >= 'A' && view[position.y][position.x] <= 'Z' {
+		//	continue
+		//}
 
 		// Check if found.
 		if view[position.y][position.x] == key {
 			return candidate
 		}
 
+		// Add found key on the way.
+		foundKeys := []int{}
+		foundKeys = append(foundKeys, candidate.keysOnWay...)
+		if candidate.length > 0 && view[position.y][position.x] >= 'a' && view[position.y][position.x] <= 'z' {
+			foundKeys = append(foundKeys, view[position.y][position.x])
+		}
+
 		// Generate new candidates.
-		addCandidate(history, &candidates, position.x+1, position.y, candidate.length)
-		addCandidate(history, &candidates, position.x-1, position.y, candidate.length)
-		addCandidate(history, &candidates, position.x, position.y+1, candidate.length)
-		addCandidate(history, &candidates, position.x, position.y-1, candidate.length)
+		addCandidate(history, &candidates, position.x+1, position.y, candidate.length, foundKeys)
+		addCandidate(history, &candidates, position.x-1, position.y, candidate.length, foundKeys)
+		addCandidate(history, &candidates, position.x, position.y+1, candidate.length, foundKeys)
+		addCandidate(history, &candidates, position.x, position.y-1, candidate.length, foundKeys)
 	}
 
-	return path{coordinate{0, 0}, -1}
+	return path{coordinate{0, 0}, -1, []int{}}
 }
 
-func addCandidate(history map[coordinate]bool, candidates *[]path, x int, y int, len int) {
+func addCandidate(history map[coordinate]bool, candidates *[]path, x int, y int, len int, foundKeys []int) {
 	if history[coordinate{x, y}] == false {
-		p := path{coordinate{x, y}, len + 1}
+		p := path{coordinate{x, y}, len + 1, foundKeys}
 		*candidates = append(*candidates, p)
 	}
 }
@@ -207,7 +245,6 @@ func load() [][]int {
 	bytes, _ := ioutil.ReadFile("input.txt")
 	lines := strings.Split(string(bytes), "\n")
 	for y, row := range lines {
-		fmt.Println(row)
 		colMem := make([]int, len(row))
 		input = append(input, colMem)
 		for x, col := range row {

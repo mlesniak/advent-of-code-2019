@@ -30,7 +30,7 @@ func main() {
 			}
 		})
 	}
-	fmt.Println(keys)
+	fmt.Println("Keys", keys)
 
 	// Find coordinates of every door, necessary for opening (=removing) a door.
 	doors := make(map[int]coordinate)
@@ -42,7 +42,63 @@ func main() {
 			}
 		})
 	}
-	fmt.Println(doors)
+	fmt.Println("Doors", doors)
+
+	// Implement simple BFS to find all possible keys.
+	bfs(view, x, y, 'a')
+}
+
+func bfs(view [][]int, x int, y int, key int) {
+	start := coordinate{x, y}
+	candidates := []coordinate{start}
+	history := make(map[coordinate]bool)
+
+	for len(candidates) > 0 {
+		//wait()
+		//fmt.Println(candidates)
+		position := candidates[0]
+		//fmt.Println("- Looking at", position)
+		candidates = candidates[1:]
+
+		// Ignore already visited.
+		_, visited := history[position]
+		if visited {
+			continue
+		}
+		history[position] = true
+
+		// Ignore out-of-fields.
+		if position.x < 0 || position.x > len(view[0]) || position.y < 0 || position.y > len(view) {
+			continue
+		}
+		// Ignore walls.
+		if view[position.y][position.x] == '#' {
+			continue
+		}
+		// Ignore doors.
+		if view[position.y][position.x] >= 'A' && view[position.y][position.x] <= 'Z' {
+			continue
+		}
+
+		// Check if found.
+		if view[position.y][position.x] == key {
+			fmt.Println("Found", position)
+			return
+		}
+
+		// Generate new candidates.
+
+		addCandidate(history, &candidates, position.x+1, position.y)
+		addCandidate(history, &candidates, position.x-1, position.y)
+		addCandidate(history, &candidates, position.x, position.y+1)
+		addCandidate(history, &candidates, position.x, position.y-1)
+	}
+}
+
+func addCandidate(history map[coordinate]bool, candidates *[]coordinate, x int, y int) {
+	if history[coordinate{x, y}] == false {
+		*candidates = append(*candidates, coordinate{x, y})
+	}
 }
 
 type coordinate struct {

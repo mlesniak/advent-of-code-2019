@@ -29,11 +29,17 @@ func main() {
 	fmt.Println("Initial candidates", candidates)
 
 	// Idea:DFS sorted by current path length?
+	i := 0
 	for len(candidates) > 0 {
+		i++
+		if i > 10 {
+			break
+		}
 		// TODO Each candidate needs its own view!
+		fmt.Println("\n\nCandidates", candidates)
 		candidate := candidates[0]
 		candidates = candidates[1:]
-		fmt.Println("\nExamining", string(candidate.key), candidate)
+		fmt.Println("Examining", string(candidate.key), candidate)
 
 		// Copy view since we will open doors and remove keys.
 		cp := make([][]int, len(view))
@@ -52,12 +58,13 @@ func main() {
 
 		// Find now reachable keys and add them to the list.
 		cs := findReachableKeys(cp, keyCoord.x, keyCoord.y)
-		fmt.Println("candidates", cs)
+		for _, c := range cs {
+			c.view = cp
+		}
+		candidates = append(candidates, cs...)
 
 		// If none can be found, ... TODO
 	}
-
-	// alle Schlüssel finden
 }
 
 func findReachableKeys(view [][]int, x int, y int) []path {
@@ -140,18 +147,26 @@ func simpleSearchFromAtoZ() {
 	//sum += result.length
 }
 
+func (p path) String() string {
+	return fmt.Sprintf("%s/pos=<%v>/len=%d/visited=%v", string(p.key), p.position, p.length, p.visited)
+}
+
 type path struct {
-	position coordinate
-	length   int
-	key      int
-	//foundKeys []int
+	position  coordinate
+	length    int
+	key       int
+	view      [][]int
+	foundKeys []int
+	visited   map[int]bool
 }
 
 func newPath(c coordinate) path {
 	return path{
-		position: c,
-		length:   0,
-		//foundKeys: []int{}
+		position:  c,
+		length:    0,
+		view:      [][]int{},
+		foundKeys: []int{},
+		visited:   map[int]bool{},
 	}
 }
 
@@ -194,18 +209,26 @@ func bfs(view [][]int, x int, y int, key int) path {
 		}
 
 		// Generate new candidates.
-		addCandidate(history, &candidates, key, position.x+1, position.y, candidate.length)
-		addCandidate(history, &candidates, key, position.x-1, position.y, candidate.length)
-		addCandidate(history, &candidates, key, position.x, position.y+1, candidate.length)
-		addCandidate(history, &candidates, key, position.x, position.y-1, candidate.length)
+		addCandidate(history, &candidates, key, position.x+1, position.y, candidate)
+		addCandidate(history, &candidates, key, position.x-1, position.y, candidate)
+		addCandidate(history, &candidates, key, position.x, position.y+1, candidate)
+		addCandidate(history, &candidates, key, position.x, position.y-1, candidate)
 	}
 
-	return path{coordinate{0, 0}, -1, key}
+	p := newPath(coordinate{0, 0})
+	p.length = -1
+	return p
 }
 
-func addCandidate(history map[coordinate]bool, candidates *[]path, key int, x int, y int, len int) {
+func addCandidate(history map[coordinate]bool, candidates *[]path, key int, x int, y int, candidate path) {
 	if history[coordinate{x, y}] == false {
-		p := path{coordinate{x, y}, len + 1, key}
+		p := path{
+			position:  coordinate{x, y},
+			length:    candidate.length + 1,
+			key:       key,
+			foundKeys: candidate.foundKeys,
+			view:      candidate.view,
+		}
 		*candidates = append(*candidates, p)
 	}
 }

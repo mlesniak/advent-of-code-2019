@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"io/ioutil"
-	"math"
 	"os"
 	"strings"
 )
@@ -21,15 +20,37 @@ func main() {
 		}
 	})
 
-	// Idea: explore whole lab with backtracking until we have found all keys; Dijkstra would be another option?
-	// Ignore doors for now. Directions:
-	//
-	//          0
-	//        2   3
-	//          1
-	foundKeys := make(map[int]bool)
-	path := []direction{}
-	backtrack(view, foundKeys, path, x, y)
+	// Find coordinates of every key.
+	keys := make(map[int]coordinate)
+	for c := 'a'; c <= 'z'; c++ {
+		withInput(view, func(x, y, value int) {
+			ic := int(c)
+			if value == ic {
+				keys[ic] = coordinate{x, y}
+			}
+		})
+	}
+	fmt.Println(keys)
+
+	// Find coordinates of every door, necessary for opening (=removing) a door.
+	doors := make(map[int]coordinate)
+	for c := 'A'; c <= 'Z'; c++ {
+		withInput(view, func(x, y, value int) {
+			ic := int(c)
+			if value == ic {
+				doors[ic] = coordinate{x, y}
+			}
+		})
+	}
+	fmt.Println(doors)
+}
+
+type coordinate struct {
+	x, y int
+}
+
+func (c coordinate) String() string {
+	return fmt.Sprintf("%d/%d", c.x, c.y)
 }
 
 type direction int
@@ -57,82 +78,6 @@ func (d direction) String() string {
 	}
 
 	panic("Unknown direction")
-}
-
-func backtrack(view [][]int, foundKeys map[int]bool, path []direction, x int, y int) {
-	if len(path) > 10 {
-		return
-	}
-
-	//fmt.Println("\n" + strings.Repeat("-", 40))
-	//fmt.Println("x=", x, ", y=", y, ", value=", string(view[y][x]))
-	//fmt.Println("path", path)
-	//fmt.Println("foundKeys", foundKeys)
-	//wait()
-
-	dxs := []int{-1, 1, 0}
-	dys := []int{-1, 1, 0}
-
-	// Check if we stand on a key.
-	if view[y][x] >= 'a' && view[y][x] <= 'z' {
-		fmt.Println("Found key", view[y][x])
-		foundKeys[view[y][x]] = true
-		view[y][x] = '.'
-	}
-	if len(foundKeys) == 2 {
-		fmt.Println("FOUND")
-		fmt.Println(path)
-		return
-	}
-
-	for _, dx := range dxs {
-		for _, dy := range dys {
-			// Ignore diagnoal paths.
-			abs := math.Abs(float64(dx)) + math.Abs(float64(dy))
-			if abs > 1 || abs == 0 {
-				continue
-			}
-
-			// Since we have a border around the whole maze, we do not need to check for negative or too large indices.
-			ny := y + dy
-			nx := x + dx
-			val := view[ny][nx]
-
-			onStart := false
-			if view[ny][nx] == '@' {
-				onStart = true
-			}
-
-			onDoor := false
-			if view[ny][nx] >= 'A' && view[ny][nx] <= 'Z' {
-				onDoor = true
-			}
-
-			onKey := false
-			if view[ny][nx] >= 'a' && view[ny][nx] <= 'z' {
-				onKey = true
-			}
-
-			// Check if this is not the opposite direction.
-			direction := fromDelta(dx, dy)
-			//opposite := len(path) > 0 && direction == oppositeDirection(path[len(path)-1])
-			//opposite := false
-
-			// Check if path is free.
-			freeField := val == '.'
-
-			if freeField || onDoor || onKey || onStart {
-				// Add to path and backtrack.
-				nPath := append(path, direction)
-				copyKeys := make(map[int]bool)
-				for key, value := range foundKeys {
-					copyKeys[key] = value
-				}
-				backtrack(view, copyKeys, nPath, nx, ny)
-				//fmt.Println("Backtrack from", nPath, "to", path)
-			}
-		}
-	}
 }
 
 func oppositeDirection(d direction) direction {

@@ -22,56 +22,56 @@ func main() {
 	})
 
 	keys := findKeys(view)
-	doors := findDoors(view)
+	//doors := findDoors(view)
 
 	// Find initial list of reachable nodes for search.
-	candidates := findReachableKeys(view, x, y)
+	candidates := findReachableKeys(view, nil, x, y)
 	fmt.Println("Initial candidates", candidates)
 
-	// Idea:DFS sorted by current path length?
+	solutions := []int{}
+
 	i := 0
 	for len(candidates) > 0 {
 		i++
-		if i > 10 {
-			break
-		}
-		// TODO Each candidate needs its own view!
-		fmt.Println("\n\nCandidates", candidates)
+		//if i > 20 {
+		//	fmt.Println("bye")
+		//	break
+		//}
+		fmt.Println("\n------------------------------------\nCandidates", candidates)
 		candidate := candidates[0]
 		candidates = candidates[1:]
 		fmt.Println("Examining", string(candidate.key), candidate)
 
-		// Copy view since we will open doors and remove keys.
-		cp := make([][]int, len(view))
-		for row := range view {
-			cp[row] = make([]int, len(view[0]))
-			for col := range view[row] {
-				cp[row][col] = view[row][col]
-			}
+		// Check if this is a solution.
+		if len(keys) == len(candidate.foundKeys) {
+			fmt.Println("*** Solution with length=", candidate.length)
+			solutions = append(solutions, candidate.length)
+			continue
 		}
-
-		// Remove key and open door for this key.
-		keyCoord := keys[candidate.key]
-		cp[keyCoord.y][keyCoord.x] = '.'
-		doorCoord := doors[int(unicode.ToUpper(rune(candidate.key)))]
-		cp[doorCoord.y][doorCoord.x] = '.'
 
 		// Find now reachable keys and add them to the list.
-		cs := findReachableKeys(cp, keyCoord.x, keyCoord.y)
-		for _, c := range cs {
-			c.view = cp
+		keyPosition := keys[candidate.key]
+		cs := findReachableKeys(view, candidate.foundKeys, keyPosition.x, keyPosition.y)
+		for idx, value := range cs {
+			fmt.Println("-> Candidate:", value)
+			cs[idx].length = cs[idx].length + candidate.length
 		}
 		candidates = append(candidates, cs...)
-
-		// If none can be found, ... TODO
 	}
+
+	fmt.Println(solutions)
 }
 
-func findReachableKeys(view [][]int, x int, y int) []path {
-	candidates := []path{}
-	for key := 'a'; key <= 'c'; key++ {
+func findReachableKeys(view [][]int, foundKeys map[int]bool, x int, y int) []candidate {
+	candidates := []candidate{}
+	for key := 'a'; key <= 'z'; key++ {
+		// If already found, ignore.
+		if foundKeys[int(key)] {
+			continue
+		}
+
 		ik := int(key)
-		p := bfs(view, x, y, ik)
+		p := bfs(view, foundKeys, x, y, ik)
 		if p.length > 0 {
 			candidates = append(candidates, p)
 		}
@@ -80,7 +80,7 @@ func findReachableKeys(view [][]int, x int, y int) []path {
 }
 
 func generateMatrix() {
-	//// Implement simple BFS to find all possible key-to-key path lengths.
+	//// Implement simple BFS to find all possible key-to-key candidate lengths.
 	//sum := 0
 	//for key := 'a'; key <= 'z'; key++ {
 	//	if _, found := keys[int(key)]; found == false {
@@ -147,43 +147,40 @@ func simpleSearchFromAtoZ() {
 	//sum += result.length
 }
 
-func (p path) String() string {
-	return fmt.Sprintf("%s/pos=<%v>/len=%d/visited=%v", string(p.key), p.position, p.length, p.visited)
+func (p candidate) String() string {
+	return fmt.Sprintf("%s/pos=<%v>/len=%d/foundKeys=%v", string(p.key), p.position, p.length, p.foundKeys)
 }
 
-type path struct {
+type candidate struct {
 	position  coordinate
 	length    int
 	key       int
-	view      [][]int
-	foundKeys []int
-	visited   map[int]bool
+	foundKeys map[int]bool
 }
 
-func newPath(c coordinate) path {
-	return path{
+func newPath(c coordinate) candidate {
+	return candidate{
 		position:  c,
 		length:    0,
-		view:      [][]int{},
-		foundKeys: []int{},
-		visited:   map[int]bool{},
+		foundKeys: map[int]bool{},
 	}
 }
 
-func bfs(view [][]int, x int, y int, key int) path {
+func bfs(view [][]int, _foundKeys map[int]bool, x int, y int, key int) candidate {
 	start := coordinate{x, y}
-	candidates := []path{newPath(start)}
+	path := newPath(start)
+	for k, v := range _foundKeys {
+		path.foundKeys[k] = v
+	}
+	candidates := []candidate{path}
 	history := make(map[coordinate]bool)
 
 	for len(candidates) > 0 {
-		//wait()
-		//fmt.Println(candidates)
 		candidate := candidates[0]
 		position := candidate.position
-		//fmt.Println("- Looking at", candidate)
 		candidates = candidates[1:]
 
-		// Ignore already visited.
+		// Ignore already foundKeys.
 		_, visited := history[position]
 		if visited {
 			continue
@@ -198,9 +195,17 @@ func bfs(view [][]int, x int, y int, key int) path {
 		if view[position.y][position.x] == '#' {
 			continue
 		}
-		// Ignore doors.
+		// Ignore doors for found keys, stop otherwise.
 		if view[position.y][position.x] >= 'A' && view[position.y][position.x] <= 'Z' {
-			continue
+			lower := int(unicode.ToLower(rune(view[position.y][position.x])))
+			if !candidate.foundKeys[lower] {
+				continue
+			}
+		}
+		// Add keys on the way to the list of found keys.
+		if view[position.y][position.x] >= 'a' && view[position.y][position.x] <= 'z' {
+			lower := int(unicode.ToLower(rune(view[position.y][position.x])))
+			candidate.foundKeys[lower] = true
 		}
 
 		// Check if found.
@@ -220,14 +225,19 @@ func bfs(view [][]int, x int, y int, key int) path {
 	return p
 }
 
-func addCandidate(history map[coordinate]bool, candidates *[]path, key int, x int, y int, candidate path) {
+func addCandidate(history map[coordinate]bool, candidates *[]candidate, key int, x int, y int, c candidate) {
 	if history[coordinate{x, y}] == false {
-		p := path{
+		// Copy foundKeys
+		fk := map[int]bool{}
+		for k, v := range c.foundKeys {
+			fk[k] = v
+		}
+
+		p := candidate{
 			position:  coordinate{x, y},
-			length:    candidate.length + 1,
+			length:    c.length + 1,
 			key:       key,
-			foundKeys: candidate.foundKeys,
-			view:      candidate.view,
+			foundKeys: fk,
 		}
 		*candidates = append(*candidates, p)
 	}

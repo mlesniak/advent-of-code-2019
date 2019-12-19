@@ -31,10 +31,11 @@ func main() {
 
 	minSolution := math.MaxInt64
 	for len(candidates) > 0 {
+		//fmt.Print("\r", len(candidates))
 		//fmt.Println("\n------------------------------------\nCandidates", candidates)
 		candidate := candidates[0]
 		candidates = candidates[1:]
-		//fmt.Println("Examining", string(candidate.key), candidate)
+		fmt.Println("Examining", string(candidate.key), candidate)
 
 		// Check if this is a solution.
 		if len(keys) == len(candidate.foundKeys) {
@@ -50,12 +51,14 @@ func main() {
 		keyPosition := keys[candidate.key]
 		cs := findReachableKeys(view, candidate.foundKeys, keyPosition.x, keyPosition.y)
 		for idx, _ := range cs {
-			//fmt.Println("-> Candidate:", value)
+			fmt.Println("-> Candidate:", cs[idx])
 			cs[idx].length = cs[idx].length + candidate.length
 		}
-		candidates = append(candidates, cs...)
+		// DFS instead of BFS.
+		candidates = append(cs, candidates...)
 	}
 
+	fmt.Println()
 	fmt.Println(minSolution)
 }
 

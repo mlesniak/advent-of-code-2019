@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"os"
 	"strings"
 	"unicode"
@@ -28,38 +29,34 @@ func main() {
 	candidates := findReachableKeys(view, nil, x, y)
 	fmt.Println("Initial candidates", candidates)
 
-	solutions := []int{}
-
-	i := 0
+	minSolution := math.MaxInt64
 	for len(candidates) > 0 {
-		i++
-		//if i > 20 {
-		//	fmt.Println("bye")
-		//	break
-		//}
-		fmt.Println("\n------------------------------------\nCandidates", candidates)
+		//fmt.Println("\n------------------------------------\nCandidates", candidates)
 		candidate := candidates[0]
 		candidates = candidates[1:]
-		fmt.Println("Examining", string(candidate.key), candidate)
+		//fmt.Println("Examining", string(candidate.key), candidate)
 
 		// Check if this is a solution.
 		if len(keys) == len(candidate.foundKeys) {
-			fmt.Println("*** Solution with length=", candidate.length)
-			solutions = append(solutions, candidate.length)
+			if minSolution > candidate.length {
+				minSolution = candidate.length
+			}
+			////fmt.Println("*** Solution with length=", candidate.length)
+			//solutions = append(solutions, candidate.length)
 			continue
 		}
 
 		// Find now reachable keys and add them to the list.
 		keyPosition := keys[candidate.key]
 		cs := findReachableKeys(view, candidate.foundKeys, keyPosition.x, keyPosition.y)
-		for idx, value := range cs {
-			fmt.Println("-> Candidate:", value)
+		for idx, _ := range cs {
+			//fmt.Println("-> Candidate:", value)
 			cs[idx].length = cs[idx].length + candidate.length
 		}
 		candidates = append(candidates, cs...)
 	}
 
-	fmt.Println(solutions)
+	fmt.Println(minSolution)
 }
 
 func findReachableKeys(view [][]int, foundKeys map[int]bool, x int, y int) []candidate {

@@ -33,29 +33,37 @@ func main() {
 	for len(candidates) > 0 {
 		//fmt.Print("\r", len(candidates))
 		//fmt.Println("\n------------------------------------\nCandidates", candidates)
-		candidate := candidates[0]
+		cd := candidates[0]
 		candidates = candidates[1:]
-		fmt.Println("Examining", string(candidate.key), candidate)
+		//fmt.Println("Examining", string(cd.key), cd)
 
 		// Check if this is a solution.
-		if len(keys) == len(candidate.foundKeys) {
-			if minSolution > candidate.length {
-				minSolution = candidate.length
+		if len(keys) == len(cd.foundKeys) {
+			if minSolution > cd.length {
+				minSolution = cd.length
 			}
-			////fmt.Println("*** Solution with length=", candidate.length)
-			//solutions = append(solutions, candidate.length)
+			fmt.Println("*** Solution with length=", cd.length, minSolution)
+			for _, value := range candidates {
+				fmt.Println(value.length)
+			}
+			//solutions = append(solutions, cd.length)
 			continue
 		}
 
 		// Find now reachable keys and add them to the list.
-		keyPosition := keys[candidate.key]
-		cs := findReachableKeys(view, candidate.foundKeys, keyPosition.x, keyPosition.y)
+		keyPosition := keys[cd.key]
+		cs := findReachableKeys(view, cd.foundKeys, keyPosition.x, keyPosition.y)
+		ks := []candidate{}
 		for idx, _ := range cs {
-			fmt.Println("-> Candidate:", cs[idx])
-			cs[idx].length = cs[idx].length + candidate.length
+			//fmt.Println("-> Candidate:", cs[idx])
+			cs[idx].length = cs[idx].length + cd.length
+			// Remove path if a solution is smaller.
+			if cs[idx].length < minSolution {
+				ks = append(ks, cs[idx])
+			}
 		}
 		// DFS instead of BFS.
-		candidates = append(cs, candidates...)
+		candidates = append(ks, candidates...)
 	}
 
 	fmt.Println()

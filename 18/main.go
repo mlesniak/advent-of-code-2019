@@ -31,6 +31,9 @@ func main() {
 		if len(c.foundKeys) == len(keys) {
 			if minSolution == nil || minSolution.length > c.length {
 				minSolution = &c
+
+				fmt.Println(minSolution.length)
+				fmt.Println(*minSolution)
 			}
 			//
 			//fmt.Println("Solution", c)
@@ -45,8 +48,8 @@ func main() {
 			newCandidate.length += c.length
 			newCandidate.path = c.path + string(newCandidate.key)
 			//fmt.Println("CAND", newCandidate)
-			//candidates = append([]candidate{newCandidate}, candidates...)
-			candidates = append(candidates, newCandidate)
+			candidates = append([]candidate{newCandidate}, candidates...)
+			//candidates = append(candidates, newCandidate)
 		}
 	}
 

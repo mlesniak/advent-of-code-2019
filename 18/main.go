@@ -66,7 +66,7 @@ func main() {
 			continue
 		}
 
-		fmt.Println("\nEXAM:", c)
+		//fmt.Println("\nEXAM:", c)
 		cs := paths[c.key]
 
 		// TODO filter only for missing keys?
@@ -106,7 +106,7 @@ func main() {
 			}
 
 			nc.path = c.path + string(nc.key)
-			fmt.Println("  CAND", nc)
+			//fmt.Println("  CAND", nc)
 			candidates = append([]candidate{nc}, candidates...)
 			//candidates = append(candidates, nc)
 		}

@@ -33,11 +33,13 @@ func main() {
 
 	i := 0
 	for len(candidates) > 0 {
+		//sort.Sort(candidates)
+
 		c := candidates[0]
 		candidates = candidates[1:]
 
 		i++
-		if i%10000 == 0 {
+		if i%100000 == 0 {
 			fmt.Print("\r", len(candidates), " ", c.path, strings.Repeat(" ", 40))
 			//wait()
 		}
@@ -69,10 +71,6 @@ func main() {
 
 	nextCandidate:
 		for _, newCandidate := range cs {
-			if minSolution != nil && minSolution.length < c.length {
-				continue
-			}
-
 			// If already in keys, ignore.
 			if c.foundKeys[newCandidate.key] {
 				continue
@@ -96,6 +94,10 @@ func main() {
 			nc.foundKeys[newCandidate.key] = true
 
 			nc.length += c.length
+			if minSolution != nil && minSolution.length < nc.length {
+				continue
+			}
+
 			nc.path = c.path + string(nc.key)
 			//fmt.Println("  CAND", nc)
 			candidates = append([]candidate{nc}, candidates...)
@@ -109,7 +111,13 @@ func main() {
 	}
 }
 
-func findInitialList(view [][]int) []candidate {
+type cands []candidate
+
+func (a cands) Len() int           { return len(a) }
+func (a cands) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a cands) Less(i, j int) bool { return a[i].length < a[j].length }
+
+func findInitialList(view [][]int) cands {
 	var x, y int
 	withInput(view, func(_x, _y, value int) {
 		if value == '@' {

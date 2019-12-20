@@ -43,7 +43,7 @@ func main() {
 		candidates = candidates[1:]
 
 		// Add to history.
-		sorted := SortString(c.path)
+		sorted := string(c.key) + "." + SortString(c.path) + "." + string(c.path[len(c.path)-1])
 		if cur, found := cache[sorted]; found {
 			if cur > c.length {
 				//fmt.Println("  Adding to cache:", sorted, "with length=", c.length)
@@ -123,7 +123,8 @@ func main() {
 			//fmt.Println("  CAND", nc)
 
 			// check cached value. If it is lower, ignore this candidate.
-			ncSorted := SortString(nc.path)
+			//ncSorted := SortString(nc.path)
+			ncSorted := string(nc.key) + "." + SortString(nc.path) + "." + string(nc.path[len(nc.path)-1])
 			if limit, found := cache[ncSorted]; found {
 				// Examine only if this is better.
 				if nc.length < limit {

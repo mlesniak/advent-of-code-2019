@@ -44,8 +44,15 @@ func main() {
 
 		// Add to history.
 		sorted := SortString(c.path)
-		cache[sorted] = c.length
-		fmt.Println("  Adding to cache:", sorted, "with length=", c.length)
+		if cur, found := cache[sorted]; found {
+			if cur > c.length {
+				//fmt.Println("  Adding to cache:", sorted, "with length=", c.length)
+				cache[sorted] = c.length
+			}
+		} else {
+			//fmt.Println("  Adding to cache:", sorted, "with length=", c.length)
+			cache[sorted] = c.length
+		}
 
 		i++
 		if i%100000 == 0 {
@@ -75,7 +82,7 @@ func main() {
 			continue
 		}
 
-		fmt.Println("\nEXAM:", c)
+		//fmt.Println("\nEXAM:", c)
 		cs := paths[c.key]
 
 	nextCandidate:
@@ -113,17 +120,17 @@ func main() {
 			}
 
 			nc.path = c.path + string(nc.key)
-			fmt.Println("  CAND", nc)
+			//fmt.Println("  CAND", nc)
 
 			// check cached value. If it is lower, ignore this candidate.
 			ncSorted := SortString(nc.path)
 			if limit, found := cache[ncSorted]; found {
 				// Examine only if this is better.
 				if nc.length < limit {
-					fmt.Println(" -- Examining, since better for", ncSorted)
+					//fmt.Println(" -- Examining, since better for", ncSorted)
 					candidates = append([]candidate{nc}, candidates...)
 				} else {
-					fmt.Println(" -- Better result for", ncSorted, "=", limit, "instead of", nc.length, ", ignoring")
+					//fmt.Println(" -- Better result for", ncSorted, "=", limit, "instead of", nc.length, ", ignoring")
 				}
 			} else {
 				// Add if not cached

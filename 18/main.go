@@ -13,8 +13,8 @@ import (
 func main() {
 	view := load()
 
-	//fmt.Println("PATHS")
 	paths := findPaths(view)
+	//fmt.Println("PATHS")
 	//for key, value := range paths {
 	//	fmt.Println(string(key), "=>")
 	//	for _, value := range value {
@@ -52,10 +52,9 @@ func main() {
 				minSolution = &c
 				fmt.Println("***", minSolution.length)
 				fmt.Println(*minSolution)
+
+				// TODO Prune candidate list?
 			}
-			//
-			//fmt.Println("Solution", c)
-			//fmt.Println("***", c.length)
 			continue
 		}
 
@@ -74,6 +73,13 @@ func main() {
 			for doorKey, _ := range newCandidate.doorsOnWay {
 				if !c.foundKeys[doorKey] {
 					continue nextCandidate
+				}
+			}
+
+			//newCandidate foundKeys is wrong
+			for key, value := range c.foundKeys {
+				if value {
+					newCandidate.foundKeys[key] = true
 				}
 			}
 

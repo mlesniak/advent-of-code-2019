@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"io/ioutil"
-	"math"
 	"os"
 	"strings"
 	"unicode"
@@ -13,7 +12,16 @@ import (
 func main() {
 	view := load()
 
-	// Find starting point.
+	candidates := findInitialList(view)
+	fmt.Println("Initial candidates", candidates)
+
+	paths := findPaths(view)
+	for key, value := range paths {
+		fmt.Println(key, "=>", value)
+	}
+}
+
+func findInitialList(view [][]int) []candidate {
 	var x, y int
 	withInput(view, func(_x, _y, value int) {
 		if value == '@' {
@@ -21,53 +29,91 @@ func main() {
 			y = _y
 		}
 	})
-
-	keys := findKeys(view)
-	//doors := findDoors(view)
-
-	// Find initial list of reachable nodes for search.
 	candidates := findReachableKeys(view, nil, x, y)
-	fmt.Println("Initial candidates", candidates)
+	return candidates
+}
 
-	minSolution := math.MaxInt64
-	for len(candidates) > 0 {
-		//fmt.Print("\r", len(candidates))
-		//fmt.Println("\n------------------------------------\nCandidates", candidates)
-		cd := candidates[0]
-		candidates = candidates[1:]
-		//fmt.Println("Examining", string(cd.key), cd)
-
-		// Check if this is a solution.
-		if len(keys) == len(cd.foundKeys) {
-			if minSolution > cd.length {
-				minSolution = cd.length
-			}
-			fmt.Println("*** Solution with length=", cd.length, minSolution)
-			for _, value := range candidates {
-				fmt.Println(value.length)
-			}
-			//solutions = append(solutions, cd.length)
+func findPaths(view [][]int) map[int][]candidate {
+	paths := map[int][]candidate{}
+	keys := findKeys(view)
+	for key := 'a'; key <= 'z'; key++ {
+		ik := int(key)
+		if _, found := keys[ik]; found == false {
 			continue
 		}
+		for key2 := 'a'; key2 <= 'z'; key2++ {
+			ik2 := int(key2)
+			if _, found := keys[ik2]; found == false {
+				continue
+			}
+			if key2 == key {
+				continue
+			}
 
-		// Find now reachable keys and add them to the list.
-		keyPosition := keys[cd.key]
-		cs := findReachableKeys(view, cd.foundKeys, keyPosition.x, keyPosition.y)
-		ks := []candidate{}
-		for idx, _ := range cs {
-			//fmt.Println("-> Candidate:", cs[idx])
-			cs[idx].length = cs[idx].length + cd.length
-			// Remove path if a solution is smaller.
-			if cs[idx].length < minSolution {
-				ks = append(ks, cs[idx])
+			// Start code here.
+			p1 := keys[ik]
+			emptyFoundKeys := map[int]bool{}
+			p := bfs(view, emptyFoundKeys, p1.x, p1.y, ik2)
+			if p.length != -1 {
+				paths[ik] = append(paths[ik], p)
 			}
 		}
-		// DFS instead of BFS.
-		candidates = append(ks, candidates...)
 	}
+	return paths
+}
 
-	fmt.Println()
-	fmt.Println(minSolution)
+func old() {
+	//// Find starting point.
+	//var x, y int
+	//withInput(view, func(_x, _y, value int) {
+	//	if value == '@' {
+	//		x = _x
+	//		y = _y
+	//	}
+	//})
+	//keys := findKeys(view)
+	////doors := findDoors(view)
+	//// Find initial list of reachable nodes for search.
+	//candidates := findReachableKeys(view, nil, x, y)
+	//fmt.Println("Initial candidates", candidates)
+	//minSolution := math.MaxInt64
+	//for len(candidates) > 0 {
+	//	//fmt.Print("\r", len(candidates))
+	//	//fmt.Println("\n------------------------------------\nCandidates", candidates)
+	//	cd := candidates[0]
+	//	candidates = candidates[1:]
+	//	//fmt.Println("Examining", string(cd.key), cd)
+	//
+	//	// Check if this is a solution.
+	//	if len(keys) == len(cd.foundKeys) {
+	//		if minSolution > cd.length {
+	//			minSolution = cd.length
+	//		}
+	//		fmt.Println("*** Solution with length=", cd.length, minSolution)
+	//		for _, value := range candidates {
+	//			fmt.Println(value.length)
+	//		}
+	//		//solutions = append(solutions, cd.length)
+	//		continue
+	//	}
+	//
+	//	// Find now reachable keys and add them to the list.
+	//	keyPosition := keys[cd.key]
+	//	cs := findReachableKeys(view, cd.foundKeys, keyPosition.x, keyPosition.y)
+	//	ks := []candidate{}
+	//	for idx, _ := range cs {
+	//		//fmt.Println("-> Candidate:", cs[idx])
+	//		cs[idx].length = cs[idx].length + cd.length
+	//		// Remove path if a solution is smaller.
+	//		if cs[idx].length < minSolution {
+	//			ks = append(ks, cs[idx])
+	//		}
+	//	}
+	//	// DFS instead of BFS.
+	//	candidates = append(ks, candidates...)
+	//}
+	//fmt.Println()
+	//fmt.Println(minSolution)
 }
 
 func findReachableKeys(view [][]int, foundKeys map[int]bool, x int, y int) []candidate {

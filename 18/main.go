@@ -66,8 +66,10 @@ func main() {
 			continue
 		}
 
-		//fmt.Println("\nEXAM:", c)
+		fmt.Println("\nEXAM:", c)
 		cs := paths[c.key]
+
+		// TODO filter only for missing keys?
 
 	nextCandidate:
 		for _, newCandidate := range cs {
@@ -91,6 +93,11 @@ func main() {
 					nc.foundKeys[key] = true
 				}
 			}
+			for key, value := range newCandidate.foundKeys {
+				if value {
+					nc.foundKeys[key] = true
+				}
+			}
 			nc.foundKeys[newCandidate.key] = true
 
 			nc.length += c.length
@@ -99,7 +106,7 @@ func main() {
 			}
 
 			nc.path = c.path + string(nc.key)
-			//fmt.Println("  CAND", nc)
+			fmt.Println("  CAND", nc)
 			candidates = append([]candidate{nc}, candidates...)
 			//candidates = append(candidates, nc)
 		}

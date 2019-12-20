@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"strings"
 	"unicode"
@@ -12,27 +13,44 @@ import (
 func main() {
 	view := load()
 
-	//paths := findPaths(view)
+	//fmt.Println("PATHS")
+	paths := findPaths(view)
 	//for key, value := range paths {
-	//	fmt.Println(key, "=>", value)
+	//	fmt.Println(string(key), "=>")
+	//	for _, value := range value {
+	//		fmt.Println("  -", value)
+	//	}
 	//}
 
 	keys := findKeys(view)
 
 	candidates := findInitialList(view)
-	//fmt.Println("Initial", candidates)
+	//fmt.Println("\nINITIAL")
+	//fmt.Println(candidates)
 
 	var minSolution *candidate
 
+	i := 0
 	for len(candidates) > 0 {
 		c := candidates[0]
 		candidates = candidates[1:]
 
+		i++
+		if i%1000 == 0 {
+			log.Println(len(candidates))
+			log.Println(c.path)
+			//wait()
+		}
+
+		if minSolution != nil && minSolution.length < c.length {
+			// Ignore longer paths
+			continue
+		}
+
 		if len(c.foundKeys) == len(keys) {
 			if minSolution == nil || minSolution.length > c.length {
 				minSolution = &c
-
-				fmt.Println(minSolution.length)
+				fmt.Println("***", minSolution.length)
 				fmt.Println(*minSolution)
 			}
 			//
@@ -42,19 +60,40 @@ func main() {
 		}
 
 		//fmt.Println("\nEXAM:", c)
-		cs := findReachableKeys(view, c.foundKeys, c.position.x, c.position.y)
+		//cs := findReachableKeys(view, c.foundKeys, c.position.x, c.position.y)
+		cs := paths[c.key]
+
+	nextCandidate:
 		for _, newCandidate := range cs {
+			// If already in keys, ignore.
+			if c.foundKeys[newCandidate.key] {
+				continue
+			}
+
+			// Check if for all doors, a key exists.
+			for doorKey, _ := range newCandidate.doorsOnWay {
+				if !c.foundKeys[doorKey] {
+					continue nextCandidate
+				}
+			}
+
 			// Update length
 			newCandidate.length += c.length
 			newCandidate.path = c.path + string(newCandidate.key)
-			//fmt.Println("CAND", newCandidate)
+			//fmt.Println("  CAND", newCandidate)
+			if minSolution != nil && minSolution.length < c.length {
+				// Ignore longer paths
+				continue
+			}
 			candidates = append([]candidate{newCandidate}, candidates...)
 			//candidates = append(candidates, newCandidate)
 		}
 	}
 
-	fmt.Println(minSolution.length)
-	fmt.Println(*minSolution)
+	if minSolution != nil {
+		fmt.Println(minSolution.length)
+		fmt.Println(*minSolution)
+	}
 }
 
 func findInitialList(view [][]int) []candidate {
@@ -92,7 +131,7 @@ func findPaths(view [][]int) map[int][]candidate {
 			// Start code here.
 			p1 := keys[ik]
 			emptyFoundKeys := map[int]bool{}
-			p := bfs(view, emptyFoundKeys, p1.x, p1.y, ik2)
+			p := bfs(view, true, emptyFoundKeys, p1.x, p1.y, ik2)
 			if p.length != -1 {
 				paths[ik] = append(paths[ik], p)
 			}
@@ -110,39 +149,12 @@ func findReachableKeys(view [][]int, foundKeys map[int]bool, x int, y int) []can
 		}
 
 		ik := int(key)
-		p := bfs(view, foundKeys, x, y, ik)
+		p := bfs(view, false, foundKeys, x, y, ik)
 		if p.length > 0 {
 			candidates = append(candidates, p)
 		}
 	}
 	return candidates
-}
-
-func generateMatrix() {
-	//// Implement simple BFS to find all possible key-to-key candidate lengths.
-	//sum := 0
-	//for key := 'a'; key <= 'z'; key++ {
-	//	if _, found := keys[int(key)]; found == false {
-	//		continue
-	//	}
-	//	for key2 := 'a'; key2 <= 'z'; key2++ {
-	//		ik2 := int(key2)
-	//		if _, found := keys[ik2]; found == false {
-	//			continue
-	//		}
-	//		if key2 == key {
-	//			continue
-	//		}
-	//
-	//		// Start code here.
-	//		p1 := keys[int(key)]
-	//		p := bfs(view, p1.x, p1.y, ik2)
-	//		if p.length != -1 {
-	//			fmt.Println(string(key), string(key2), p)
-	//		}
-	//	}
-	//}
-	//fmt.Println("Length", sum)
 }
 
 func findDoors(view [][]int) map[int]coordinate {
@@ -171,42 +183,42 @@ func findKeys(view [][]int) map[int]coordinate {
 	return keys
 }
 
-func simpleSearchFromAtoZ() {
-	//fmt.Println("Searching", string(key), ", starting at", x, y)
-	//result := bfs(view, x, y, int(key))
-	//fmt.Println("->", result)
-	//
-	//// Unlock corresponding door.
-	//doorPosition := doors[int(unicode.ToUpper(rune(key)))]
-	//view[doorPosition.y][doorPosition.x] = '.'
-	//
-	//// Start search for next key.
-	//x = result.position.x
-	//y = result.position.y
-	//sum += result.length
+type mbool map[int]bool
+
+func (p mbool) String() string {
+	s := ""
+	for key, value := range map[int]bool(p) {
+		if value {
+			s = s + string(key) + ","
+		}
+	}
+	s = s[:len(s)-1]
+	return s
 }
 
 func (p candidate) String() string {
-	return fmt.Sprintf("%s/pos=<%v>/len=%d/foundKeys=%v/path=%s", string(p.key), p.position, p.length, p.foundKeys, p.path)
+	return fmt.Sprintf("%s/pos=<%v>/len=%d/foundKeys=%v/doors=%v/path=%s", string(p.key), p.position, p.length, p.foundKeys, p.doorsOnWay, p.path)
 }
 
 type candidate struct {
-	position  coordinate
-	path      string
-	length    int
-	key       int
-	foundKeys map[int]bool
+	position   coordinate
+	path       string
+	length     int
+	key        int
+	foundKeys  map[int]bool
+	doorsOnWay map[int]bool
 }
 
 func newPath(c coordinate) candidate {
 	return candidate{
-		position:  c,
-		length:    0,
-		foundKeys: map[int]bool{},
+		position:   c,
+		length:     0,
+		foundKeys:  map[int]bool{},
+		doorsOnWay: map[int]bool{},
 	}
 }
 
-func bfs(view [][]int, _foundKeys map[int]bool, x int, y int, key int) candidate {
+func bfs(view [][]int, ignoreDoors bool, _foundKeys map[int]bool, x int, y int, key int) candidate {
 	start := coordinate{x, y}
 	path := newPath(start)
 	for k, v := range _foundKeys {
@@ -235,12 +247,13 @@ func bfs(view [][]int, _foundKeys map[int]bool, x int, y int, key int) candidate
 		if view[position.y][position.x] == '#' {
 			continue
 		}
-		// Ignore doors for found keys, stop otherwise.
+		// TODO Comment this when finished...
 		if view[position.y][position.x] >= 'A' && view[position.y][position.x] <= 'Z' {
 			lower := int(unicode.ToLower(rune(view[position.y][position.x])))
-			if !candidate.foundKeys[lower] {
+			if !ignoreDoors && !candidate.foundKeys[lower] {
 				continue
 			}
+			candidate.doorsOnWay[lower] = true
 		}
 		// Add keys on the way to the list of found keys.
 		if view[position.y][position.x] >= 'a' && view[position.y][position.x] <= 'z' {
@@ -273,11 +286,17 @@ func addCandidate(history map[coordinate]bool, candidates *[]candidate, key int,
 			fk[k] = v
 		}
 
+		dw := map[int]bool{}
+		for k, v := range c.doorsOnWay {
+			dw[k] = v
+		}
+
 		p := candidate{
-			position:  coordinate{x, y},
-			length:    c.length + 1,
-			key:       key,
-			foundKeys: fk,
+			position:   coordinate{x, y},
+			length:     c.length + 1,
+			key:        key,
+			foundKeys:  fk,
+			doorsOnWay: dw,
 		}
 		*candidates = append(*candidates, p)
 	}
@@ -289,63 +308,6 @@ type coordinate struct {
 
 func (c coordinate) String() string {
 	return fmt.Sprintf("%d/%d", c.x, c.y)
-}
-
-type direction int
-
-const (
-	up = iota
-	down
-	left
-	right
-)
-
-const minDirection = up
-const maxDirection = right
-
-func (d direction) String() string {
-	switch d {
-	case up:
-		return "U"
-	case down:
-		return "D"
-	case left:
-		return "L"
-	case right:
-		return "R"
-	}
-
-	panic("Unknown direction")
-}
-
-func oppositeDirection(d direction) direction {
-	switch d {
-	case up:
-		return down
-	case down:
-		return up
-	case left:
-		return right
-	case right:
-		return left
-	}
-
-	panic("Unknown direction")
-}
-
-func fromDelta(dx int, dy int) direction {
-	switch {
-	case dx == 0 && dy == 1:
-		return down
-	case dx == 0 && dy == -1:
-		return up
-	case dx == 1 && dy == 0:
-		return right
-	case dx == -1 && dy == 0:
-		return left
-	}
-
-	panic("Unknown dx/dy")
 }
 
 func withInput(input [][]int, f func(x, y, value int)) {
@@ -375,58 +337,4 @@ func load() [][]int {
 func wait() {
 	fmt.Print("<ENTER>")
 	bufio.NewReader(os.Stdin).ReadLine()
-}
-
-func old() {
-	//// Find starting point.
-	//var x, y int
-	//withInput(view, func(_x, _y, value int) {
-	//	if value == '@' {
-	//		x = _x
-	//		y = _y
-	//	}
-	//})
-	//keys := findKeys(view)
-	////doors := findDoors(view)
-	//// Find initial list of reachable nodes for search.
-	//candidates := findReachableKeys(view, nil, x, y)
-	//fmt.Println("Initial candidates", candidates)
-	//minSolution := math.MaxInt64
-	//for len(candidates) > 0 {
-	//	//fmt.Print("\r", len(candidates))
-	//	//fmt.Println("\n------------------------------------\nCandidates", candidates)
-	//	cd := candidates[0]
-	//	candidates = candidates[1:]
-	//	//fmt.Println("Examining", string(cd.key), cd)
-	//
-	//	// Check if this is a solution.
-	//	if len(keys) == len(cd.foundKeys) {
-	//		if minSolution > cd.length {
-	//			minSolution = cd.length
-	//		}
-	//		fmt.Println("*** Solution with length=", cd.length, minSolution)
-	//		for _, value := range candidates {
-	//			fmt.Println(value.length)
-	//		}
-	//		//solutions = append(solutions, cd.length)
-	//		continue
-	//	}
-	//
-	//	// Find now reachable keys and add them to the list.
-	//	keyPosition := keys[cd.key]
-	//	cs := findReachableKeys(view, cd.foundKeys, keyPosition.x, keyPosition.y)
-	//	ks := []candidate{}
-	//	for idx, _ := range cs {
-	//		//fmt.Println("-> Candidate:", cs[idx])
-	//		cs[idx].length = cs[idx].length + cd.length
-	//		// Remove path if a solution is smaller.
-	//		if cs[idx].length < minSolution {
-	//			ks = append(ks, cs[idx])
-	//		}
-	//	}
-	//	// DFS instead of BFS.
-	//	candidates = append(ks, candidates...)
-	//}
-	//fmt.Println()
-	//fmt.Println(minSolution)
 }

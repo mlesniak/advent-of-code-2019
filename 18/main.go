@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"sort"
 	"strings"
 	"unicode"
 )
@@ -29,6 +30,9 @@ func main() {
 
 	var minSolution *candidate
 
+	// Sorted list of already visited keys, format keyorder->minimal amount of steps
+	cache := make(map[string]int)
+
 	// d=100, f=102
 
 	i := 0
@@ -38,9 +42,14 @@ func main() {
 		c := candidates[0]
 		candidates = candidates[1:]
 
+		// Add to history.
+		sorted := SortString(c.path)
+		cache[sorted] = c.length
+		fmt.Println("  Adding to cache:", sorted, "with length=", c.length)
+
 		i++
 		if i%100000 == 0 {
-			fmt.Print("\r", len(candidates), " ", c.path, strings.Repeat(" ", 40))
+			fmt.Print("\r", len(candidates), " ", candidates[0].length, " ", c.path, strings.Repeat(" ", 40))
 			//wait()
 		}
 
@@ -66,10 +75,8 @@ func main() {
 			continue
 		}
 
-		//fmt.Println("\nEXAM:", c)
+		fmt.Println("\nEXAM:", c)
 		cs := paths[c.key]
-
-		// TODO filter only for missing keys?
 
 	nextCandidate:
 		for _, newCandidate := range cs {
@@ -106,9 +113,22 @@ func main() {
 			}
 
 			nc.path = c.path + string(nc.key)
-			//fmt.Println("  CAND", nc)
-			candidates = append([]candidate{nc}, candidates...)
-			//candidates = append(candidates, nc)
+			fmt.Println("  CAND", nc)
+
+			// check cached value. If it is lower, ignore this candidate.
+			ncSorted := SortString(nc.path)
+			if limit, found := cache[ncSorted]; found {
+				// Examine only if this is better.
+				if nc.length < limit {
+					fmt.Println(" -- Examining, since better for", ncSorted)
+					candidates = append([]candidate{nc}, candidates...)
+				} else {
+					fmt.Println(" -- Better result for", ncSorted, "=", limit, "instead of", nc.length, ", ignoring")
+				}
+			} else {
+				// Add if not cached
+				candidates = append([]candidate{nc}, candidates...)
+			}
 		}
 	}
 
@@ -376,4 +396,24 @@ func load() [][]int {
 func wait() {
 	fmt.Print("<ENTER>")
 	bufio.NewReader(os.Stdin).ReadLine()
+}
+
+type sortRunes []rune
+
+func (s sortRunes) Less(i, j int) bool {
+	return s[i] < s[j]
+}
+
+func (s sortRunes) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+func (s sortRunes) Len() int {
+	return len(s)
+}
+
+func SortString(s string) string {
+	r := []rune(s)
+	sort.Sort(sortRunes(r))
+	return string(r)
 }

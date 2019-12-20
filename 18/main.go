@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"strings"
 	"unicode"
@@ -14,13 +13,13 @@ func main() {
 	view := load()
 
 	paths := findPaths(view)
-	//fmt.Println("PATHS")
-	//for key, value := range paths {
-	//	fmt.Println(string(key), "=>")
-	//	for _, value := range value {
-	//		fmt.Println("  -", value)
-	//	}
-	//}
+	fmt.Println("PATHS")
+	for key, value := range paths {
+		fmt.Println(string(key), "=>")
+		for _, value := range value {
+			fmt.Println("  -", value)
+		}
+	}
 
 	keys := findKeys(view)
 
@@ -30,20 +29,20 @@ func main() {
 
 	var minSolution *candidate
 
+	// d=100, f=102
+
 	i := 0
 	for len(candidates) > 0 {
 		c := candidates[0]
 		candidates = candidates[1:]
 
 		i++
-		if i%1000 == 0 {
-			log.Println(len(candidates))
-			log.Println(c.path)
+		if i%10000 == 0 {
+			fmt.Print("\r", len(candidates), " ", c.path, strings.Repeat(" ", 40))
 			//wait()
 		}
 
 		if minSolution != nil && minSolution.length < c.length {
-			// Ignore longer paths
 			continue
 		}
 
@@ -52,18 +51,28 @@ func main() {
 				minSolution = &c
 				fmt.Println("***", minSolution.length)
 				fmt.Println(*minSolution)
-
 				// TODO Prune candidate list?
+
+				too := 0
+				for _, value := range candidates {
+					if value.length >= minSolution.length {
+						too++
+					}
+				}
+				fmt.Println(">:", too)
 			}
 			continue
 		}
 
 		//fmt.Println("\nEXAM:", c)
-		//cs := findReachableKeys(view, c.foundKeys, c.position.x, c.position.y)
 		cs := paths[c.key]
 
 	nextCandidate:
 		for _, newCandidate := range cs {
+			if minSolution != nil && minSolution.length < c.length {
+				continue
+			}
+
 			// If already in keys, ignore.
 			if c.foundKeys[newCandidate.key] {
 				continue
@@ -76,23 +85,21 @@ func main() {
 				}
 			}
 
-			//newCandidate foundKeys is wrong
+			// Create whole new copy.
+			nc := newCandidate
+			nc.foundKeys = make(map[int]bool)
 			for key, value := range c.foundKeys {
 				if value {
-					newCandidate.foundKeys[key] = true
+					nc.foundKeys[key] = true
 				}
 			}
+			nc.foundKeys[newCandidate.key] = true
 
-			// Update length
-			newCandidate.length += c.length
-			newCandidate.path = c.path + string(newCandidate.key)
-			//fmt.Println("  CAND", newCandidate)
-			if minSolution != nil && minSolution.length < c.length {
-				// Ignore longer paths
-				continue
-			}
-			candidates = append([]candidate{newCandidate}, candidates...)
-			//candidates = append(candidates, newCandidate)
+			nc.length += c.length
+			nc.path = c.path + string(nc.key)
+			//fmt.Println("  CAND", nc)
+			candidates = append([]candidate{nc}, candidates...)
+			//candidates = append(candidates, nc)
 		}
 	}
 
@@ -139,6 +146,7 @@ func findPaths(view [][]int) map[int][]candidate {
 			emptyFoundKeys := map[int]bool{}
 			p := bfs(view, true, emptyFoundKeys, p1.x, p1.y, ik2)
 			if p.length != -1 {
+				delete(p.foundKeys, ik2)
 				paths[ik] = append(paths[ik], p)
 			}
 		}
@@ -203,7 +211,17 @@ func (p mbool) String() string {
 }
 
 func (p candidate) String() string {
-	return fmt.Sprintf("%s/pos=<%v>/len=%d/foundKeys=%v/doors=%v/path=%s", string(p.key), p.position, p.length, p.foundKeys, p.doorsOnWay, p.path)
+	fk := ""
+	for key, _ := range p.foundKeys {
+		fk += string(key)
+	}
+
+	dk := ""
+	for key, _ := range p.doorsOnWay {
+		dk += string(key)
+	}
+	//return fmt.Sprintf("%s/pos=<%v>/len=%d/foundKeys=%s.%d/doors=%s/path=%s", string(p.key), p.position, p.length, fk, len(p.foundKeys), dk, p.path)
+	return fmt.Sprintf("%s/len=%d/foundKeys=%s.%d/doors=%s/path=%s", string(p.key), p.length, fk, len(p.foundKeys), dk, p.path)
 }
 
 type candidate struct {

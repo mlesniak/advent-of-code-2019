@@ -20,24 +20,38 @@ func main() {
 	keys := findKeys(view)
 
 	candidates := findInitialList(view)
+	//fmt.Println("Initial", candidates)
+
+	var minSolution *candidate
+
 	for len(candidates) > 0 {
 		c := candidates[0]
 		candidates = candidates[1:]
 
 		if len(c.foundKeys) == len(keys) {
-			fmt.Println("Solution", c)
-			fmt.Println("***", c.length)
+			if minSolution == nil || minSolution.length > c.length {
+				minSolution = &c
+			}
+			//
+			//fmt.Println("Solution", c)
+			//fmt.Println("***", c.length)
 			continue
 		}
 
-		fmt.Println(c)
+		//fmt.Println("\nEXAM:", c)
 		cs := findReachableKeys(view, c.foundKeys, c.position.x, c.position.y)
-		//fmt.Println("  ->", cs)
-
 		for _, newCandidate := range cs {
-			candidates = append([]candidate{newCandidate}, candidates...)
+			// Update length
+			newCandidate.length += c.length
+			newCandidate.path = c.path + string(newCandidate.key)
+			//fmt.Println("CAND", newCandidate)
+			//candidates = append([]candidate{newCandidate}, candidates...)
+			candidates = append(candidates, newCandidate)
 		}
 	}
+
+	fmt.Println(minSolution.length)
+	fmt.Println(*minSolution)
 }
 
 func findInitialList(view [][]int) []candidate {
@@ -49,6 +63,9 @@ func findInitialList(view [][]int) []candidate {
 		}
 	})
 	candidates := findReachableKeys(view, nil, x, y)
+	for idx := range candidates {
+		candidates[idx].path = string(candidates[idx].key)
+	}
 	return candidates
 }
 
@@ -167,11 +184,12 @@ func simpleSearchFromAtoZ() {
 }
 
 func (p candidate) String() string {
-	return fmt.Sprintf("%s/pos=<%v>/len=%d/foundKeys=%v", string(p.key), p.position, p.length, p.foundKeys)
+	return fmt.Sprintf("%s/pos=<%v>/len=%d/foundKeys=%v/path=%s", string(p.key), p.position, p.length, p.foundKeys, p.path)
 }
 
 type candidate struct {
 	position  coordinate
+	path      string
 	length    int
 	key       int
 	foundKeys map[int]bool

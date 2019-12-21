@@ -117,11 +117,11 @@ func main() {
 		sorted := string(c.key) + "." + SortString(c.path) + "." + string(c.path[len(c.path)-1])
 		if cur, found := cache[sorted]; found {
 			if cur > c.length {
-				//fmt.Println("  Adding to cache:", sorted, "with length=", c.length)
+				fmt.Println("  Adding to cache:", sorted, "with length=", c.length)
 				cache[sorted] = c.length
 			}
 		} else {
-			//fmt.Println("  Adding to cache:", sorted, "with length=", c.length)
+			fmt.Println("  Adding to cache:", sorted, "with length=", c.length)
 			cache[sorted] = c.length
 		}
 
@@ -153,7 +153,7 @@ func main() {
 			continue
 		}
 
-		//fmt.Println("\nEXAM:", c)
+		fmt.Println("\nEXAM:", c)
 		cs := paths[c.key]
 
 	nextCandidate:
@@ -191,7 +191,7 @@ func main() {
 			} else {
 				// Walk path backwards, trying to find a value in the same area. If we have one,
 				// use this distance.
-				//fmt.Println("  CAND/external", nc)
+				fmt.Println("  CAND/external", nc)
 				updLen := nc.length + c.length
 			updateLoop:
 				for i := len(c.path) - 1; i >= 0; i-- {
@@ -215,19 +215,19 @@ func main() {
 			//}
 
 			nc.path = c.path + string(nc.key)
-			//fmt.Println("  CAND", nc)
+			fmt.Println("  CAND", nc)
 
 			// check cached value. If it is lower, ignore this candidate.
 			//ncSorted := SortString(nc.path)
 			ncSorted := string(nc.key) + "." + SortString(nc.path) + "." + string(nc.path[len(nc.path)-1])
 			if limit, found := cache[ncSorted]; found {
 				// Examine only if this is better.
-				candidates = append([]candidate{nc}, candidates...)
-				if nc.length < limit {
+				//candidates = append([]candidate{nc}, candidates...)
+				if nc.length <= limit {
 					//	//fmt.Println(" -- Examining, since better for", ncSorted)
-					//	candidates = append([]candidate{nc}, candidates...)
+					candidates = append([]candidate{nc}, candidates...)
 				} else {
-					//	//fmt.Println(" -- Better result for", ncSorted, "=", limit, "instead of", nc.length, ", ignoring")
+					fmt.Println(" -- Better result for", ncSorted, "=", limit, "instead of", nc.length, ", ignoring")
 				}
 			} else {
 				// Add if not cached

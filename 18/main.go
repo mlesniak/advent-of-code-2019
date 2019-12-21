@@ -53,12 +53,13 @@ func main() {
 				continue
 			}
 
+			// Check if already inserted.
+			if sameArea[string(key)+string(key2)] {
+				continue
+			}
+
 			// Start code here.
 			emptyFoundKeys := map[int]bool{}
-
-			// We have no path from, e.g. a to d. Check if there is another path
-			// from one of the starting points.
-
 			for _, sp := range cs {
 				p := bfs(view, true, emptyFoundKeys, sp.x, sp.y, ik2)
 				if p.length != -1 {
@@ -105,6 +106,10 @@ func main() {
 	var minSolution *candidate
 	i := 0
 	for len(candidates) > 0 {
+		//if i > 20 {
+		//	return
+		//}
+
 		c := candidates[0]
 		candidates = candidates[1:]
 
@@ -186,17 +191,17 @@ func main() {
 			} else {
 				// Walk path backwards, trying to find a value in the same area. If we have one,
 				// use this distance.
-				fmt.Println("  CAND/external", nc)
+				//fmt.Println("  CAND/external", nc)
 				updLen := nc.length + c.length
 			updateLoop:
 				for i := len(c.path) - 1; i >= 0; i-- {
 					if sameArea[string(nc.key)+string(c.path[i])] {
-						fmt.Println("  CAND.path", string(c.path[i]))
+						//fmt.Println("  CAND.path", string(c.path[i]))
 						// Search for path cost from lat element in the area to the new one.
 						for _, v := range paths[int(c.path[i])] {
 							if v.key == nc.key {
 								updLen = v.length + c.length
-								fmt.Println("  updLen", updLen)
+								//fmt.Println("  updLen", updLen)
 								break updateLoop
 							}
 						}

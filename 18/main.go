@@ -18,11 +18,11 @@ func main() {
 	paths := findPaths(view)
 	fmt.Println("PATHS")
 	for key, value := range paths {
-		fmt.Println(string(key), "=>")
+		//fmt.Println(string(key), "=>")
 		for _, value := range value {
 			k := string(key) + string(value.key)
 			sameArea[k] = true
-			fmt.Println("  -", value)
+			//fmt.Println("  -", value)
 		}
 	}
 
@@ -34,7 +34,7 @@ func main() {
 			cs = append(cs, coordinate{_x, _y})
 		}
 	})
-	fmt.Println(cs)
+	//fmt.Println(cs)
 
 	// Für alle keys, die da sind, ich aber nicht erreichen konnte:
 	// hinzufügen, erstmal kosten 0
@@ -54,45 +54,44 @@ func main() {
 			}
 
 			// Start code here.
-			p1 := keys[ik]
 			emptyFoundKeys := map[int]bool{}
 
 			// We have no path from, e.g. a to d. Check if there is another path
 			// from one of the starting points.
 
-			//for _, sp := range cs {
-			//	p := bfs(view, true, emptyFoundKeys, sp.x, sp.y, ik2)
-			//	if p.length != -1 {
-			//		//fmt.Println("Found path", p, "for", sp)
-			//		delete(p.foundKeys, ik2)
-			//		// Mark as "special" path
-			//		p.length = -1
-			//		paths[ik] = append(paths[ik], p)
-			//	}
-			//}
-
-			p := bfs(view, true, emptyFoundKeys, p1.x, p1.y, ik2)
-			if p.length == -1 {
-				start := keys[ik2]
-				p2 := newPath(start)
-				p2.key = ik2
-				p2.foundKeys[ik] = true
-				p2.length = -1 // Mark as "special" path
-				paths[ik] = append(paths[ik], p2)
+			for _, sp := range cs {
+				p := bfs(view, true, emptyFoundKeys, sp.x, sp.y, ik2)
+				if p.length != -1 {
+					//fmt.Println("Found path", p, "for", sp)
+					delete(p.foundKeys, ik2)
+					paths[ik] = append(paths[ik], p)
+				}
 			}
+
+			//p1 := keys[ik]
+			//p := bfs(view, true, emptyFoundKeys, p1.x, p1.y, ik2)
+			//if p.length == -1 {
+			//	start := keys[ik2]
+			//	p2 := newPath(start)
+			//	p2.key = ik2
+			//	p2.foundKeys[ik] = true
+			//	//p2.length = -1 // Mark as "special" path
+			//	// Length is from starting point, i.e. only for beginning.
+			//	paths[ik] = append(paths[ik], p2)
+			//}
 		}
 	}
 
 	// "Habe einen Pfad von jedem Key, der mich nichts kostet in alle anderen Bereiche, zu dem jeweiligen @"
-	for key, value := range paths {
-		fmt.Println(string(key), "=>")
-		for _, value := range value {
-			fmt.Println("  -", value)
-		}
-	}
-	if true {
-		return
-	}
+	//for key, value := range paths {
+	//	fmt.Println(string(key), "=>")
+	//	for _, value := range value {
+	//		fmt.Println("  -", value)
+	//	}
+	//}
+	//if true {
+	//	return
+	//}
 	// ------------------------------------------------------------------------------------------
 
 	candidates := findInitialList(view)
@@ -181,7 +180,31 @@ func main() {
 			}
 			nc.foundKeys[newCandidate.key] = true
 
-			nc.length += c.length
+			// Length computation.
+			if sameArea[string(c.key)+string(nc.key)] {
+				nc.length += c.length
+			} else {
+				// Walk path backwards, trying to find a value in the same area. If we have one,
+				// use this distance.
+				fmt.Println("  CAND/external", nc)
+				updLen := nc.length + c.length
+			updateLoop:
+				for i := len(c.path) - 1; i >= 0; i-- {
+					if sameArea[string(nc.key)+string(c.path[i])] {
+						fmt.Println("  CAND.path", string(c.path[i]))
+						// Search for path cost from lat element in the area to the new one.
+						for _, v := range paths[int(c.path[i])] {
+							if v.key == nc.key {
+								updLen = v.length + c.length
+								fmt.Println("  updLen", updLen)
+								break updateLoop
+							}
+						}
+					}
+				}
+				nc.length = updLen
+			}
+
 			if minSolution != nil && minSolution.length < nc.length {
 				continue
 			}

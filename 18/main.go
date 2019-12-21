@@ -50,29 +50,32 @@ func main() {
 			}
 
 			// Start code here.
-			//p1 := keys[ik]
+			p1 := keys[ik]
 			emptyFoundKeys := map[int]bool{}
 
 			// We have no path from, e.g. a to d. Check if there is another path
 			// from one of the starting points.
 
-			for _, sp := range cs {
-				p := bfs(view, true, emptyFoundKeys, sp.x, sp.y, ik2)
-				if p.length != -1 {
-					fmt.Println("Found path", p, "for", sp)
-					delete(p.foundKeys, ik2)
-					paths[ik] = append(paths[ik], p)
-				}
-			}
-
-			//p := bfs(view, true, emptyFoundKeys, p1.x, p1.y, ik2)
-			//if p.length == -1 {
-			//	start := keys[ik2]
-			//	p2 := newPath(start)
-			//	p2.key = ik2
-			//	p2.foundKeys[ik] = true
-			//	paths[ik] = append(paths[ik], p2)
+			//for _, sp := range cs {
+			//	p := bfs(view, true, emptyFoundKeys, sp.x, sp.y, ik2)
+			//	if p.length != -1 {
+			//		//fmt.Println("Found path", p, "for", sp)
+			//		delete(p.foundKeys, ik2)
+			//		// Mark as "special" path
+			//		p.length = -1
+			//		paths[ik] = append(paths[ik], p)
+			//	}
 			//}
+
+			p := bfs(view, true, emptyFoundKeys, p1.x, p1.y, ik2)
+			if p.length == -1 {
+				start := keys[ik2]
+				p2 := newPath(start)
+				p2.key = ik2
+				p2.foundKeys[ik] = true
+				p2.length = -1 // Mark as "special" path
+				paths[ik] = append(paths[ik], p2)
+			}
 		}
 	}
 
@@ -83,9 +86,9 @@ func main() {
 			fmt.Println("  -", value)
 		}
 	}
-	//if true {
-	//	return
-	//}
+	if true {
+		return
+	}
 	// ------------------------------------------------------------------------------------------
 
 	candidates := findInitialList(view)
@@ -180,7 +183,7 @@ func main() {
 			}
 
 			nc.path = c.path + string(nc.key)
-			//fmt.Println("  CAND", nc)
+			fmt.Println("  CAND", nc)
 
 			// check cached value. If it is lower, ignore this candidate.
 			//ncSorted := SortString(nc.path)

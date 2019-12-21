@@ -22,7 +22,71 @@ func main() {
 		}
 	}
 
+	// ------------------------------------------------------------------------------------------
+
+	cs := []coordinate{}
+	withInput(view, func(_x, _y, value int) {
+		if value == '@' {
+			cs = append(cs, coordinate{_x, _y})
+		}
+	})
+	fmt.Println(cs)
+
+	// Für alle keys, die da sind, ich aber nicht erreichen konnte:
+	// hinzufügen, erstmal kosten 0
 	keys := findKeys(view)
+	for key := 'a'; key <= 'z'; key++ {
+		ik := int(key)
+		if _, found := keys[ik]; found == false {
+			continue
+		}
+		for key2 := 'a'; key2 <= 'z'; key2++ {
+			ik2 := int(key2)
+			if _, found := keys[ik2]; found == false {
+				continue
+			}
+			if key2 == key {
+				continue
+			}
+
+			// Start code here.
+			//p1 := keys[ik]
+			emptyFoundKeys := map[int]bool{}
+
+			// We have no path from, e.g. a to d. Check if there is another path
+			// from one of the starting points.
+
+			for _, sp := range cs {
+				p := bfs(view, true, emptyFoundKeys, sp.x, sp.y, ik2)
+				if p.length != -1 {
+					fmt.Println("Found path", p, "for", sp)
+					delete(p.foundKeys, ik2)
+					paths[ik] = append(paths[ik], p)
+				}
+			}
+
+			//p := bfs(view, true, emptyFoundKeys, p1.x, p1.y, ik2)
+			//if p.length == -1 {
+			//	start := keys[ik2]
+			//	p2 := newPath(start)
+			//	p2.key = ik2
+			//	p2.foundKeys[ik] = true
+			//	paths[ik] = append(paths[ik], p2)
+			//}
+		}
+	}
+
+	// "Habe einen Pfad von jedem Key, der mich nichts kostet in alle anderen Bereiche, zu dem jeweiligen @"
+	for key, value := range paths {
+		fmt.Println(string(key), "=>")
+		for _, value := range value {
+			fmt.Println("  -", value)
+		}
+	}
+	//if true {
+	//	return
+	//}
+	// ------------------------------------------------------------------------------------------
 
 	candidates := findInitialList(view)
 	fmt.Println("\nINITIAL")
@@ -35,10 +99,6 @@ func main() {
 	var minSolution *candidate
 	i := 0
 	for len(candidates) > 0 {
-		if i > 1 {
-			break
-		}
-
 		c := candidates[0]
 		candidates = candidates[1:]
 

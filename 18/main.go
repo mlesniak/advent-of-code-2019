@@ -215,17 +215,17 @@ func main() {
 			//}
 
 			nc.path = c.path + string(nc.key)
-			fmt.Println("  CAND", nc)
+			//fmt.Println("  CAND", nc)
 
 			// check cached value. If it is lower, ignore this candidate.
 			//ncSorted := SortString(nc.path)
-			ncSorted := string(nc.key) + "." + SortString(nc.path) + "." + string(nc.path[len(nc.path)-1])
+			ncSorted := string(nc.path[0]) + "." + SortString(nc.path) + "." + string(nc.path[len(nc.path)-1])
 			if limit, found := cache[ncSorted]; found {
 				// Examine only if this is better.
 				//candidates = append([]candidate{nc}, candidates...)
-				hack := 100
+				hack := 0
 				if nc.length < limit+hack {
-					//	//fmt.Println(" -- Examining, since better for", ncSorted)
+					//fmt.Println(" -- Examining, since better for", ncSorted)
 					candidates = append([]candidate{nc}, candidates...)
 				} else {
 					fmt.Println(" -- Better result for", ncSorted, "=", limit, "instead of", nc.length, ", ignoring")

@@ -13,11 +13,15 @@ import (
 func main() {
 	view := load()
 
+	sameArea := make(map[string]bool)
+
 	paths := findPaths(view)
 	fmt.Println("PATHS")
 	for key, value := range paths {
 		fmt.Println(string(key), "=>")
 		for _, value := range value {
+			k := string(key) + string(value.key)
+			sameArea[k] = true
 			fmt.Println("  -", value)
 		}
 	}

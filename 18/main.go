@@ -27,20 +27,17 @@ func main() {
 	candidates := findInitialList(view)
 	fmt.Println("\nINITIAL")
 	fmt.Println(candidates)
-	if true {
-		return
-	}
-
-	var minSolution *candidate
 
 	// Sorted list of already visited keys, format keyorder->minimal amount of steps
 	cache := make(map[string]int)
 
 	// d=100, f=102
-
+	var minSolution *candidate
 	i := 0
 	for len(candidates) > 0 {
-		//sort.Sort(candidates)
+		if i > 1 {
+			break
+		}
 
 		c := candidates[0]
 		candidates = candidates[1:]
@@ -85,7 +82,7 @@ func main() {
 			continue
 		}
 
-		//fmt.Println("\nEXAM:", c)
+		fmt.Println("\nEXAM:", c)
 		cs := paths[c.key]
 
 	nextCandidate:

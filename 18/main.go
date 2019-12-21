@@ -25,8 +25,11 @@ func main() {
 	keys := findKeys(view)
 
 	candidates := findInitialList(view)
-	//fmt.Println("\nINITIAL")
-	//fmt.Println(candidates)
+	fmt.Println("\nINITIAL")
+	fmt.Println(candidates)
+	if true {
+		return
+	}
 
 	var minSolution *candidate
 
@@ -152,19 +155,25 @@ func (a cands) Len() int           { return len(a) }
 func (a cands) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a cands) Less(i, j int) bool { return a[i].length < a[j].length }
 
-func findInitialList(view [][]int) cands {
-	var x, y int
+func findInitialList(view [][]int) []candidate {
+
+	cs := []coordinate{}
 	withInput(view, func(_x, _y, value int) {
 		if value == '@' {
-			x = _x
-			y = _y
+			cs = append(cs, coordinate{_x, _y})
 		}
 	})
-	candidates := findReachableKeys(view, nil, x, y)
-	for idx := range candidates {
-		candidates[idx].path = string(candidates[idx].key)
+
+	res := []candidate{}
+	for _, coord := range cs {
+		candidates := findReachableKeys(view, nil, coord.x, coord.y)
+		for idx := range candidates {
+			candidates[idx].path = string(candidates[idx].key)
+		}
+		res = append(res, candidates...)
 	}
-	return candidates
+
+	return res
 }
 
 func findPaths(view [][]int) map[int][]candidate {

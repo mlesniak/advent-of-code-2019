@@ -223,7 +223,8 @@ func main() {
 			if limit, found := cache[ncSorted]; found {
 				// Examine only if this is better.
 				//candidates = append([]candidate{nc}, candidates...)
-				if nc.length <= limit {
+				hack := 100
+				if nc.length < limit+hack {
 					//	//fmt.Println(" -- Examining, since better for", ncSorted)
 					candidates = append([]candidate{nc}, candidates...)
 				} else {

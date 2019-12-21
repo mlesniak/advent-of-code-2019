@@ -153,7 +153,7 @@ func main() {
 			continue
 		}
 
-		fmt.Println("\nEXAM:", c)
+		//fmt.Println("\nEXAM:", c)
 		cs := paths[c.key]
 
 	nextCandidate:
@@ -210,23 +210,24 @@ func main() {
 				nc.length = updLen
 			}
 
-			if minSolution != nil && minSolution.length < nc.length {
-				continue
-			}
+			//if minSolution != nil && minSolution.length < nc.length {
+			//	continue
+			//}
 
 			nc.path = c.path + string(nc.key)
-			fmt.Println("  CAND", nc)
+			//fmt.Println("  CAND", nc)
 
 			// check cached value. If it is lower, ignore this candidate.
 			//ncSorted := SortString(nc.path)
 			ncSorted := string(nc.key) + "." + SortString(nc.path) + "." + string(nc.path[len(nc.path)-1])
 			if limit, found := cache[ncSorted]; found {
 				// Examine only if this is better.
+				candidates = append([]candidate{nc}, candidates...)
 				if nc.length < limit {
-					//fmt.Println(" -- Examining, since better for", ncSorted)
-					candidates = append([]candidate{nc}, candidates...)
+					//	//fmt.Println(" -- Examining, since better for", ncSorted)
+					//	candidates = append([]candidate{nc}, candidates...)
 				} else {
-					//fmt.Println(" -- Better result for", ncSorted, "=", limit, "instead of", nc.length, ", ignoring")
+					//	//fmt.Println(" -- Better result for", ncSorted, "=", limit, "instead of", nc.length, ", ignoring")
 				}
 			} else {
 				// Add if not cached

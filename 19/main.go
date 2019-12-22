@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"strconv"
 	"strings"
@@ -10,15 +11,33 @@ import (
 type channel chan int
 
 func main() {
-	memory, in, out, stop := load()
-	go func() {
-		for {
-			if *stop {
-				break
+	sum := 0
+	for y := 0; y < 50; y++ {
+		for x := 0; x < 50; x++ {
+			memory, in, out, stop := load()
+			go func() {
+				in <- x
+				in <- y
+				c := <-out
+				var ch int
+				switch c {
+				case 0:
+					ch = '.'
+				case 1:
+					ch = '#'
+					sum++
+				}
+				fmt.Print(string(ch))
+			}()
+			compute(memory, in, out, stop)
+			for !*stop {
+				time.Sleep(time.Millisecond * 50)
 			}
 		}
-	}()
-	compute(memory, in, out, stop)
+		fmt.Println()
+	}
+
+	fmt.Println(sum)
 }
 
 func compute(memory []int, in channel, out channel, stop *bool) {
@@ -279,7 +298,7 @@ func compute(memory []int, in channel, out channel, stop *bool) {
 
 func load() ([]int, channel, channel, *bool) {
 	const MemorySize = 1000000
-	const ChannelSize = 16384
+	const ChannelSize = 128
 
 	bytes, _ := ioutil.ReadFile("input.txt")
 	lines := strings.Split(string(bytes), ",")

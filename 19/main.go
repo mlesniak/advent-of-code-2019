@@ -11,33 +11,55 @@ import (
 type channel chan int
 
 func main() {
-	sum := 0
-	for y := 0; y < 50; y++ {
-		for x := 0; x < 50; x++ {
-			memory, in, out, stop := load()
-			go func() {
-				in <- x
-				in <- y
-				c := <-out
-				var ch int
-				switch c {
-				case 0:
-					ch = '.'
-				case 1:
-					ch = '#'
-					sum++
+	size := 50
+	view := make([][]int, size)
+	for row := range view {
+		view[row] = make([]int, size)
+	}
+
+	finished := make(chan bool, size*size)
+	for y := 0; y < size; y++ {
+		for x := 0; x < size; x++ {
+			go func(x, y int) {
+				memory, in, out, stop := load()
+				go func() {
+					in <- x
+					in <- y
+					c := <-out
+					if y < size && x < size {
+						// Strange that I have to check this...
+						view[y][x] = c
+					}
+				}()
+				compute(memory, in, out, stop)
+				for !*stop {
+					// Wait...
 				}
-				fmt.Print(string(ch))
-			}()
-			compute(memory, in, out, stop)
-			for !*stop {
-				time.Sleep(time.Millisecond * 50)
+				finished <- true
+			}(x, y)
+		}
+	}
+
+	for len(finished) < size*size {
+		time.Sleep(time.Millisecond * 100)
+	}
+	show(view)
+}
+
+func show(view [][]int) {
+	for row := range view {
+		for col := range view[row] {
+			var c string
+			switch view[row][col] {
+			case 0:
+				c = "."
+			case 1:
+				c = "#"
 			}
+			fmt.Print(c)
 		}
 		fmt.Println()
 	}
-
-	fmt.Println(sum)
 }
 
 func compute(memory []int, in channel, out channel, stop *bool) {

@@ -13,21 +13,36 @@ type channel chan int
 func main() {
 	width := 50
 	height := 50
-	buffer := make([][]int, height)
-	for row := range buffer {
-		buffer[row] = make([]int, width)
-	}
+	buffer := [][]int{}
 
 	// Initially, fill buffer with height lines.
 	for y := 0; y < height; y++ {
-		readLine(width, buffer, y)
+		buffer = append(buffer, readLine(width, y))
 	}
 
-	time.Sleep(time.Second)
-	show(buffer)
+	y := height
+	count := 0
+	for {
+		// Check the last-height line for a matching width.
+		// TODO
+
+		show(buffer)
+
+		// Update buffer, remove first line, update last one.
+		line := readLine(width, y)
+		buffer = append(buffer[1:], line)
+		y++
+
+		if y > 60 {
+			break
+		}
+	}
+	fmt.Println("count", count)
 }
 
-func readLine(width int, buffer [][]int, y int) {
+func readLine(width int, y int) []int {
+	buffer := make([]int, width)
+
 	finished := make(chan bool)
 	for x := 0; x < width; x++ {
 		go func(x, y int) {
@@ -36,7 +51,7 @@ func readLine(width int, buffer [][]int, y int) {
 				in <- x
 				in <- y
 				c := <-out
-				buffer[y][x] = c
+				buffer[x] = c
 			}()
 			compute(memory, in, out, stop)
 			for !*stop {
@@ -46,6 +61,8 @@ func readLine(width int, buffer [][]int, y int) {
 		}(x, y)
 	}
 	<-finished
+
+	return buffer
 }
 
 func add() {
@@ -78,6 +95,8 @@ func add() {
 }
 
 func show(view [][]int) {
+	fmt.Println("Height", len(view))
+
 	for row := range view {
 		for col := range view[row] {
 			var c string

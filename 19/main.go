@@ -11,39 +11,70 @@ import (
 type channel chan int
 
 func main() {
-	size := 50
-	view := make([][]int, size)
-	for row := range view {
-		view[row] = make([]int, size)
+	width := 50
+	height := 50
+	buffer := make([][]int, height)
+	for row := range buffer {
+		buffer[row] = make([]int, width)
 	}
 
-	finished := make(chan bool, size*size)
-	for y := 0; y < size; y++ {
-		for x := 0; x < size; x++ {
-			go func(x, y int) {
-				memory, in, out, stop := load()
-				go func() {
-					in <- x
-					in <- y
-					c := <-out
-					if y < size && x < size {
-						// Strange that I have to check this...
-						view[y][x] = c
-					}
-				}()
-				compute(memory, in, out, stop)
-				for !*stop {
-					// Wait...
-				}
-				finished <- true
-			}(x, y)
-		}
+	// Initially, fill buffer with height lines.
+	for y := 0; y < height; y++ {
+		readLine(width, buffer, y)
 	}
 
-	for len(finished) < size*size {
-		time.Sleep(time.Millisecond * 100)
+	time.Sleep(time.Second)
+	show(buffer)
+}
+
+func readLine(width int, buffer [][]int, y int) {
+	finished := make(chan bool)
+	for x := 0; x < width; x++ {
+		go func(x, y int) {
+			memory, in, out, stop := load()
+			go func() {
+				in <- x
+				in <- y
+				c := <-out
+				buffer[y][x] = c
+			}()
+			compute(memory, in, out, stop)
+			for !*stop {
+				// Wait...
+			}
+			finished <- true
+		}(x, y)
 	}
-	show(view)
+	<-finished
+}
+
+func add() {
+	//finished := make(chan bool, size*size)
+	//for y := 0; y < size; y++ {
+	//	for x := 0; x < size; x++ {
+	//		go func(x, y int) {
+	//			memory, in, out, stop := load()
+	//			go func() {
+	//				in <- x
+	//				in <- y
+	//				c := <-out
+	//				if y < size && x < size {
+	//					// Strange that I have to check this...
+	//					buffer[y][x] = c
+	//				}
+	//			}()
+	//			compute(memory, in, out, stop)
+	//			for !*stop {
+	//				// Wait...
+	//			}
+	//			finished <- true
+	//		}(x, y)
+	//	}
+	//}
+	//
+	//for len(finished) < size*size {
+	//	time.Sleep(time.Millisecond * 100)
+	//}
 }
 
 func show(view [][]int) {

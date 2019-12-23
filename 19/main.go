@@ -16,7 +16,7 @@ func main() {
 
 	rectangleSize := 100
 	width := 1200
-	min := 1170
+	min := 1000
 	max := 1200
 	fmt.Println("Rectangle size", rectangleSize, "width=", width)
 
@@ -42,11 +42,11 @@ func main() {
 						solution := x*10000 + pos
 						fmt.Println("SOLUTION", x, pos, solution)
 
-						// Solely for debugging small examples.
+						//Solely for debugging small examples.
 						//w := x + rectangleSize
 						//for y := pos; y < pos+rectangleSize; y++ {
 						//		l := readLine(w, y)
-						//		showLine(x-5, l)
+						//		showLine(0, l)
 						//}
 
 						found = true
@@ -92,7 +92,7 @@ func showLine(startAt int, line []int) {
 }
 
 func getPoint(x int, y int) int {
-	fmt.Println("Reading", x, y)
+	//fmt.Println("Reading", x, y)
 	memory, in, out, stop := load()
 	var c int
 	go func() {
@@ -108,16 +108,23 @@ func getPoint(x int, y int) int {
 }
 
 func readLine(width int, y int) []int {
-	buffer := make([]int, width)
+	buffer := make([]int, width+1)
 
+	//var m sync.Mutex
 	for x := 0; x < width; x++ {
-		fmt.Println("Reading", x, y)
+		//fmt.Println("Reading", x, y)
 		memory, in, out, stop := load()
+		//m.Lock()
 		go func() {
 			in <- x
 			in <- y
 			c := <-out
+			if x > len(buffer)-1 {
+				fmt.Println("x=", x, "len(buffer)=", len(buffer), "width=", width)
+				panic("ouch")
+			}
 			buffer[x] = c
+			//m.Unlock()
 		}()
 		compute(memory, in, out, stop)
 		for !*stop {

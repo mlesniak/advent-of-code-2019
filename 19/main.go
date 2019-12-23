@@ -3,48 +3,85 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
 type channel chan int
 
 func main() {
-	width := 50
-	height := 50
+	width := 1000
+	height := 100
 	buffer := [][]int{}
 
 	// Initially, fill buffer with height lines.
 	for y := 0; y < height; y++ {
+		fmt.Println("Init", y)
 		buffer = append(buffer, readLine(width, y))
 	}
+	//show(buffer, height)
 
+	// Note that we will not find rectangles in the first 50 lines with our approach. ¯\_(ツ)_/¯
+	const rectangleSize = 100
 	y := height
-	count := 0
+	fmt.Println(y)
 	for {
 		// Check the last-height line for a matching width.
-		// TODO
-
-		show(buffer)
+		top := height - rectangleSize
+		line := buffer[top]
+		// Find a sequence of 1s with given length.
+		for i := 0; i < len(line); i++ {
+			if line[i] == 1 {
+				if i+rectangleSize < len(line) && line[i+rectangleSize] == 1 {
+					// Check bottom
+					if buffer[len(buffer)-1][i] == 1 {
+						// Found.
+						//show(buffer, y)
+						fmt.Println(i, top)
+						fmt.Print(top, " ")
+						//showLine(line)
+						solution := i*10000 + top
+						fmt.Println(solution)
+						os.Exit(0)
+					}
+				}
+			}
+		}
 
 		// Update buffer, remove first line, update last one.
-		line := readLine(width, y)
-		buffer = append(buffer[1:], line)
 		y++
-
-		if y > 60 {
-			break
-		}
+		fmt.Println(y)
+		newLine := readLine(width, y)
+		buffer = append(buffer[1:], newLine)
 	}
-	fmt.Println("count", count)
+}
+
+//.......................######.....................
+//12345678901234567890123456
+
+func showLine(line []int) {
+	for _, value := range line {
+		var c string
+		switch value {
+		case 0:
+			c = "."
+		case 1:
+			c = "#"
+		}
+		fmt.Print(c)
+	}
+	fmt.Println()
 }
 
 func readLine(width int, y int) []int {
 	buffer := make([]int, width)
 
-	finished := make(chan bool)
+	var w sync.Mutex
 	for x := 0; x < width; x++ {
+		w.Lock()
 		go func(x, y int) {
 			memory, in, out, stop := load()
 			go func() {
@@ -57,10 +94,10 @@ func readLine(width int, y int) []int {
 			for !*stop {
 				// Wait...
 			}
-			finished <- true
+			w.Unlock()
 		}(x, y)
 	}
-	<-finished
+	w.Lock()
 
 	return buffer
 }
@@ -94,10 +131,10 @@ func add() {
 	//}
 }
 
-func show(view [][]int) {
-	fmt.Println("Height", len(view))
-
+func show(view [][]int, maxY int) {
+	delta := maxY - len(view) + 1
 	for row := range view {
+		fmt.Print(row+delta, " ")
 		for col := range view[row] {
 			var c string
 			switch view[row][col] {

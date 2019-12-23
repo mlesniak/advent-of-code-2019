@@ -6,7 +6,6 @@ import (
 	"log"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -16,31 +15,34 @@ func main() {
 	// Use binary search to find a line.
 
 	rectangleSize := 100
-	fmt.Println("Rectangle size", rectangleSize)
-	width := 1000
-	min := 0
-	max := 2000
+	width := 1200
+	min := 1170
+	max := 1200
+	fmt.Println("Rectangle size", rectangleSize, "width=", width)
 
 	pos := 0
 	oldPos := 1
 	for pos != oldPos {
 		oldPos = pos
 		pos = (min + max) / 2
-		log.Println("Examining pos=", pos)
+		log.Println("Examining pos=", pos, "; min,max=", min, max)
 		top := readLine(width, pos)
+		if top[len(top)-1] != 0 {
+			log.Println("Warning, width may not be enough!")
+		}
 
-		// Check if this top has enough ones.
+		// Check if this top has enough ones. unicode square=▓
 		found := false
 		for x, value := range top {
 			if value == 1 && x < len(top)-1-rectangleSize {
 				if top[x+rectangleSize] == 1 {
 					// Looks promising. Could be a top corner, hence look at the bottom left corner.
-					bottom := readLine(width, pos+rectangleSize)
-					if bottom[x] == 1 {
+					if getPoint(x, pos+rectangleSize) == 1 {
 						// Corner found. Candidate.
 						solution := x*10000 + pos
 						fmt.Println("SOLUTION", x, pos, solution)
 
+						// Solely for debugging small examples.
 						//w := x + rectangleSize
 						//for y := pos; y < pos+rectangleSize; y++ {
 						//		l := readLine(w, y)
@@ -89,28 +91,39 @@ func showLine(startAt int, line []int) {
 	fmt.Println()
 }
 
+func getPoint(x int, y int) int {
+	fmt.Println("Reading", x, y)
+	memory, in, out, stop := load()
+	var c int
+	go func() {
+		in <- x
+		in <- y
+		c = <-out
+	}()
+	compute(memory, in, out, stop)
+	for !*stop {
+		// Wait...
+	}
+	return c
+}
+
 func readLine(width int, y int) []int {
 	buffer := make([]int, width)
 
-	var w sync.Mutex
 	for x := 0; x < width; x++ {
-		w.Lock()
-		go func(x, y int) {
-			memory, in, out, stop := load()
-			go func() {
-				in <- x
-				in <- y
-				c := <-out
-				buffer[x] = c
-			}()
-			compute(memory, in, out, stop)
-			for !*stop {
-				// Wait...
-			}
-			w.Unlock()
-		}(x, y)
+		fmt.Println("Reading", x, y)
+		memory, in, out, stop := load()
+		go func() {
+			in <- x
+			in <- y
+			c := <-out
+			buffer[x] = c
+		}()
+		compute(memory, in, out, stop)
+		for !*stop {
+			// Wait...
+		}
 	}
-	w.Lock()
 
 	return buffer
 }
@@ -418,19 +431,29 @@ func compute(memory []int, in channel, out channel, stop *bool) {
 	}
 }
 
+var memoryCache []int
+
 func load() ([]int, channel, channel, *bool) {
 	const MemorySize = 1000000
 	const ChannelSize = 128
 
-	bytes, _ := ioutil.ReadFile("input.txt")
-	lines := strings.Split(string(bytes), ",")
-	memory := make([]int, MemorySize)
-	for idx, val := range lines {
-		i, err := strconv.Atoi(val)
-		if err != nil {
-			panic(err)
+	var memory []int
+	if memoryCache == nil {
+		bytes, _ := ioutil.ReadFile("input.txt")
+		lines := strings.Split(string(bytes), ",")
+		memory = make([]int, MemorySize)
+		for idx, val := range lines {
+			i, err := strconv.Atoi(val)
+			if err != nil {
+				panic(err)
+			}
+			memory[idx] = i
 		}
-		memory[idx] = i
+		memoryCache = make([]int, len(memory))
+		copy(memoryCache, memory)
+	} else {
+		memory = make([]int, len(memoryCache))
+		copy(memory, memoryCache)
 	}
 	in := make(chan int, ChannelSize)
 	out := make(chan int, ChannelSize)

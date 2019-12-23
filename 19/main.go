@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -13,57 +12,62 @@ import (
 type channel chan int
 
 func main() {
-	width := 1000
-	height := 100
-	buffer := [][]int{}
+	// Use binary search to find a line.
 
-	// Initially, fill buffer with height lines.
-	for y := 0; y < height; y++ {
-		fmt.Println("Init", y)
-		buffer = append(buffer, readLine(width, y))
-	}
-	//show(buffer, height)
+	rectangleSize := 100
+	width := 10000
+	min := 0
+	max := 100000
 
-	// Note that we will not find rectangles in the first 50 lines with our approach. ¯\_(ツ)_/¯
-	const rectangleSize = 100
-	y := height
-	fmt.Println(y)
-	for {
-		// Check the last-height line for a matching width.
-		top := height - rectangleSize
-		line := buffer[top]
-		// Find a sequence of 1s with given length.
-		for i := 0; i < len(line); i++ {
-			if line[i] == 1 {
-				if i+rectangleSize < len(line) && line[i+rectangleSize] == 1 {
-					// Check bottom
-					if buffer[len(buffer)-1][i] == 1 {
-						// Found.
-						//show(buffer, y)
-						fmt.Println(i, top)
-						fmt.Print(top, " ")
-						//showLine(line)
-						solution := i*10000 + top
-						fmt.Println(solution)
-						os.Exit(0)
+	pos := 0
+	oldPos := 1
+	for pos != oldPos {
+		oldPos = pos
+		pos = (min + max) / 2
+		fmt.Println("Examining pos=", pos)
+		top := readLine(width, pos)
+
+		// Check if this top has enough ones.
+		found := false
+		for x, value := range top {
+			if value == 1 && x < len(top)-1-rectangleSize {
+				if top[x+rectangleSize] == 1 {
+					// Looks promising. Could be a top corner, hence look at the bottom left corner.
+					bottom := readLine(width, pos+rectangleSize)
+					if bottom[x] == 1 {
+						// Corner found. Candidate.
+						solution := x*10000 + pos
+						fmt.Println(x, pos, solution)
+
+						//w := x + rectangleSize
+						//for y := pos; y < pos+rectangleSize; y++ {
+						//		l := readLine(w, y)
+						//		showLine(x-5, l)
+						//}
+
+						found = true
+						break
 					}
 				}
 			}
 		}
 
-		// Update buffer, remove first line, update last one.
-		y++
-		fmt.Println(y)
-		newLine := readLine(width, y)
-		buffer = append(buffer[1:], newLine)
+		if found {
+			max = pos
+		} else {
+			min = pos
+		}
 	}
 }
 
 //.......................######.....................
 //12345678901234567890123456
 
-func showLine(line []int) {
-	for _, value := range line {
+func showLine(startAt int, line []int) {
+	for idx, value := range line {
+		if idx <= startAt {
+			continue
+		}
 		var c string
 		switch value {
 		case 0:

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"strconv"
 	"strings"
 	"sync"
@@ -15,16 +16,17 @@ func main() {
 	// Use binary search to find a line.
 
 	rectangleSize := 100
-	width := 10000
+	fmt.Println("Rectangle size", rectangleSize)
+	width := 1000
 	min := 0
-	max := 100000
+	max := 2000
 
 	pos := 0
 	oldPos := 1
 	for pos != oldPos {
 		oldPos = pos
 		pos = (min + max) / 2
-		fmt.Println("Examining pos=", pos)
+		log.Println("Examining pos=", pos)
 		top := readLine(width, pos)
 
 		// Check if this top has enough ones.
@@ -37,7 +39,7 @@ func main() {
 					if bottom[x] == 1 {
 						// Corner found. Candidate.
 						solution := x*10000 + pos
-						fmt.Println(x, pos, solution)
+						fmt.Println("SOLUTION", x, pos, solution)
 
 						//w := x + rectangleSize
 						//for y := pos; y < pos+rectangleSize; y++ {
@@ -52,16 +54,23 @@ func main() {
 			}
 		}
 
-		if found {
+		count := 0
+		for _, value := range top {
+			if value == 1 {
+				count++
+			}
+		}
+		fmt.Println("pos=", pos, "; count(1)=", count)
+
+		if count < rectangleSize {
+			min = pos
+		} else if found {
 			max = pos
 		} else {
 			min = pos
 		}
 	}
 }
-
-//.......................######.....................
-//12345678901234567890123456
 
 func showLine(startAt int, line []int) {
 	for idx, value := range line {

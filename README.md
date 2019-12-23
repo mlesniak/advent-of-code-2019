@@ -26,3 +26,4 @@ After I have the correct solution, I leave the source code as it is, ... to clea
 | 16   | [Flawed Frequency Transmission](https://adventofcode.com/2019/day/16) | [16](16) | Mathemtical analysis (less programming) |
 | 17   | [Set and Forget](https://adventofcode.com/2019/day/17) | [17](17) | Visualization, path tracing and grammar builder |
 | 18   | [Many-Worlds Interpretation](https://adventofcode.com/2019/day/18) | [18](18) | Maze exploration, Graph search, Caching |
+| 19   | [Tractor Beam](https://adventofcode.com/2019/day/19) | [19](19) | Array arithmetic |

@@ -6,6 +6,7 @@ import (
 	"log"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -15,7 +16,7 @@ func main() {
 	// Use binary search to find a line.
 
 	rectangleSize := 100
-	width := 1200
+	width := 800
 	min := 1000
 	max := 1200
 	fmt.Println("Rectangle size", rectangleSize, "width=", width)
@@ -37,7 +38,7 @@ func main() {
 			if value == 1 && x < len(top)-1-rectangleSize {
 				if top[x+rectangleSize] == 1 {
 					// Looks promising. Could be a top corner, hence look at the bottom left corner.
-					if getPoint(x, pos+rectangleSize) == 1 {
+					if getPoint(x, pos+rectangleSize-1) == 1 {
 						// Corner found. Candidate.
 						solution := x*10000 + pos
 						fmt.Println("SOLUTION", x, pos, solution)
@@ -95,36 +96,40 @@ func getPoint(x int, y int) int {
 	//fmt.Println("Reading", x, y)
 	memory, in, out, stop := load()
 	var c int
+	var l sync.Mutex
+	l.Lock()
 	go func() {
 		in <- x
 		in <- y
 		c = <-out
+		l.Unlock()
 	}()
 	compute(memory, in, out, stop)
 	for !*stop {
 		// Wait...
 	}
+	l.Lock()
 	return c
 }
 
 func readLine(width int, y int) []int {
 	buffer := make([]int, width+1)
 
-	//var m sync.Mutex
+	var m sync.Mutex
 	for x := 0; x < width; x++ {
 		//fmt.Println("Reading", x, y)
 		memory, in, out, stop := load()
-		//m.Lock()
 		go func() {
+			m.Lock()
 			in <- x
 			in <- y
 			c := <-out
-			if x > len(buffer)-1 {
-				fmt.Println("x=", x, "len(buffer)=", len(buffer), "width=", width)
-				panic("ouch")
-			}
+			//if x > len(buffer)-1 {
+			//	fmt.Println("x=", x, "len(buffer)=", len(buffer), "width=", width)
+			//	panic("ouch")
+			//}
 			buffer[x] = c
-			//m.Unlock()
+			m.Unlock()
 		}()
 		compute(memory, in, out, stop)
 		for !*stop {

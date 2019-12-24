@@ -38,15 +38,51 @@ func load() maze {
 		}
 	}
 
-	type pointDir struct {
-		point
-		//    1
-		//   3 4
-		//    2
-		orientation int
-	}
+	directionGates := computeDirectionGates(data)
+	portals := computePortalExits(directionGates)
+	gates := computeStartEndPoints(directionGates)
 
-	// Find directionGates and their opening direction.
+	return maze{data: data, portal: portals, gates: gates}
+}
+
+func computeStartEndPoints(directionGates map[string][]pointDir) map[string]point {
+	gates := make(map[string]point)
+	for key, value := range directionGates {
+		if len(value) > 1 {
+			continue
+		}
+
+		p1 := value[0]
+		gates[key] = adapt(p1.point, p1.orientation)
+	}
+	return gates
+}
+
+func computePortalExits(directionGates map[string][]pointDir) map[point]point {
+	portals := make(map[point]point)
+	for _, value := range directionGates {
+		// Ignore start and end gate.
+		if len(value) < 2 {
+			continue
+		}
+
+		p1 := value[0]
+		p2 := value[1]
+		portals[p1.point] = adapt(p2.point, p2.orientation)
+		portals[p2.point] = adapt(p1.point, p1.orientation)
+	}
+	return portals
+}
+
+type pointDir struct {
+	point
+	//    1
+	//   3 4
+	//    2
+	orientation int
+}
+
+func computeDirectionGates(data [][]int) map[string][]pointDir {
 	directionGates := make(map[string][]pointDir)
 	for y := 0; y < len(data); y++ {
 		for x := 0; x < len(data[y]); x++ {
@@ -76,31 +112,7 @@ func load() maze {
 			}
 		}
 	}
-
-	portals := make(map[point]point)
-	for _, value := range directionGates {
-		// Ignore start and end gate.
-		if len(value) < 2 {
-			continue
-		}
-
-		p1 := value[0]
-		p2 := value[1]
-		portals[p1.point] = adapt(p2.point, p2.orientation)
-		portals[p2.point] = adapt(p1.point, p1.orientation)
-	}
-
-	gates := make(map[string]point)
-	for key, value := range directionGates {
-		if len(value) > 1 {
-			continue
-		}
-
-		p1 := value[0]
-		gates[key] = adapt(p1.point, p1.orientation)
-	}
-
-	return maze{data: data, portal: portals, gates: gates}
+	return directionGates
 }
 
 func adapt(p point, orientation int) point {

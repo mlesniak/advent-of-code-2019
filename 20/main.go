@@ -26,20 +26,72 @@ func main() {
 	start := data.gates["AA"]
 	goal := data.gates["ZZ"]
 
-	length := bfs([]point{start}, goal)
+	length := bfs(data, []path{{start, 0}}, goal)
 	fmt.Println(length)
 }
 
-func bfs(list []point, goal point) int {
+type path struct {
+	position point
+	length   int
+}
+
+func bfs(data maze, list []path, goal point) int {
+	history := make(map[point]bool)
+	for _, p := range list {
+		history[p.position] = true
+	}
+
 	for len(list) > 0 {
 		p := list[0]
-		list = list[1:]
+		if p.position == goal {
+			return p.length
+		}
 
-		fmt.Println(p)
+		list = list[1:]
+		if p.length > 64 {
+			continue
+		}
+
+		cs := getCandidates(data, p)
+		for _, c := range cs {
+			if history[c.position] == false {
+				list = append(list, c)
+				history[c.position] = true
+			}
+		}
+
+		//wait()
 	}
 
 	// No path found.
 	return -1
+}
+
+func getCandidates(data maze, p path) []path {
+	// For a point, find all nearby possible ways.
+	// TODO Add portals.
+	result := []path{}
+	view := data.data
+	pos := p.position
+
+	if view[pos.y+1][pos.x] == '.' {
+		np := path{point{pos.x, pos.y + 1}, p.length + 1}
+		result = append(result, np)
+	}
+	if view[pos.y-1][pos.x] == '.' {
+		np := path{point{pos.x, pos.y - 1}, p.length + 1}
+		result = append(result, np)
+	}
+	if view[pos.y][pos.x+1] == '.' {
+		np := path{point{pos.x + 1, pos.y}, p.length + 1}
+		result = append(result, np)
+	}
+	if view[pos.y][pos.x-1] == '.' {
+		np := path{point{pos.x - 1, pos.y}, p.length + 1}
+		result = append(result, np)
+	}
+
+	return result
 }
 
 func load() maze {

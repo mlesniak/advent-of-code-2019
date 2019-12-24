@@ -17,7 +17,7 @@ type point struct {
 type maze struct {
 	data   [][]int
 	portal map[point]point
-	gates  map[string][]point
+	gates  map[string]point // start and end gate
 }
 
 func main() {
@@ -46,8 +46,8 @@ func load() maze {
 		orientation int
 	}
 
-	// Find gates.
-	gates := make(map[string][]pointDir)
+	// Find directionGates and their opening direction.
+	directionGates := make(map[string][]pointDir)
 	for y := 0; y < len(data); y++ {
 		for x := 0; x < len(data[y]); x++ {
 			if data[y][x] >= 'A' && data[y][x] <= 'Z' {
@@ -71,21 +71,51 @@ func load() maze {
 					p = pointDir{point{x, y}, 3}
 				}
 				if id != "" {
-					gates[id] = append(gates[id], p)
+					directionGates[id] = append(directionGates[id], p)
 				}
 			}
 		}
 	}
 
-	for key, value := range gates {
-		// Ignore start and end gate.
-		if len(value) > 1 {
-
-		}
-		fmt.Println(key, value)
-	}
 	portals := make(map[point]point)
-	return maze{data: data, portal: portals}
+	for _, value := range directionGates {
+		// Ignore start and end gate.
+		if len(value) < 2 {
+			continue
+		}
+
+		p1 := value[0]
+		p2 := value[1]
+		portals[p1.point] = adapt(p2.point, p2.orientation)
+		portals[p2.point] = adapt(p1.point, p1.orientation)
+	}
+
+	gates := make(map[string]point)
+	for key, value := range directionGates {
+		if len(value) > 1 {
+			continue
+		}
+
+		p1 := value[0]
+		gates[key] = adapt(p1.point, p1.orientation)
+	}
+
+	return maze{data: data, portal: portals, gates: gates}
+}
+
+func adapt(p point, orientation int) point {
+	switch orientation {
+	case 1:
+		return point{p.x, p.y - 1}
+	case 2:
+		return point{p.x, p.y + 1}
+	case 3:
+		return point{p.x - 1, p.y}
+	case 4:
+		return point{p.x + 1, p.y}
+	}
+
+	panic(fmt.Sprintf("Unknown orientation: %d", orientation))
 }
 
 func wait() {

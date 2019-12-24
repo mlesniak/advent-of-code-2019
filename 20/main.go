@@ -21,8 +21,25 @@ type maze struct {
 }
 
 func main() {
-	load()
+	data := load()
 
+	start := data.gates["AA"]
+	goal := data.gates["ZZ"]
+
+	length := bfs([]point{start}, goal)
+	fmt.Println(length)
+}
+
+func bfs(list []point, goal point) int {
+	for len(list) > 0 {
+		p := list[0]
+		list = list[1:]
+
+		fmt.Println(p)
+	}
+
+	// No path found.
+	return -1
 }
 
 func load() maze {

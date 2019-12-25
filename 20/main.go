@@ -15,13 +15,20 @@ type point struct {
 }
 
 type maze struct {
-	data   [][]int
-	portal map[point]point
-	gates  map[string]point // start and end gate
+	data    [][]int
+	portals map[point]point
+	gates   map[string]point // start and end gate
 }
 
 func main() {
 	data := load()
+
+	//for key, value := range data.portals {
+	//	fmt.Println(key, value)
+	//}
+	//if true {
+	//	return
+	//}
 
 	start := data.gates["AA"]
 	goal := data.gates["ZZ"]
@@ -74,6 +81,7 @@ func getCandidates(data maze, p path) []path {
 	view := data.data
 	pos := p.position
 
+	// Direct connection.
 	if view[pos.y+1][pos.x] == '.' {
 		np := path{point{pos.x, pos.y + 1}, p.length + 1}
 		result = append(result, np)
@@ -89,6 +97,25 @@ func getCandidates(data maze, p path) []path {
 	if view[pos.y][pos.x-1] == '.' {
 		np := path{point{pos.x - 1, pos.y}, p.length + 1}
 		result = append(result, np)
+	}
+
+	// We could have portals on the points itself, i.e. not a step away, but this would be functionally incorrect
+	// and we do not know what the second task is.
+	pp := point{pos.x, pos.y + 1}
+	if portal, found := data.portals[pp]; found {
+		result = append(result, path{position: portal, length: p.length + 1})
+	}
+	pp = point{pos.x, pos.y - 1}
+	if portal, found := data.portals[pp]; found {
+		result = append(result, path{position: portal, length: p.length + 1})
+	}
+	pp = point{pos.x + 1, pos.y}
+	if portal, found := data.portals[pp]; found {
+		result = append(result, path{position: portal, length: p.length + 1})
+	}
+	pp = point{pos.x - 1, pos.y}
+	if portal, found := data.portals[pp]; found {
+		result = append(result, path{position: portal, length: p.length + 1})
 	}
 
 	return result
@@ -111,7 +138,7 @@ func load() maze {
 	portals := computePortalExits(directionGates)
 	gates := computeStartEndPoints(directionGates)
 
-	return maze{data: data, portal: portals, gates: gates}
+	return maze{data: data, portals: portals, gates: gates}
 }
 
 func computeStartEndPoints(directionGates map[string][]pointDir) map[string]point {

@@ -14,9 +14,14 @@ type point struct {
 	y int
 }
 
+type portal struct {
+	point       // Goal
+	inside bool // Is the source of the portal on the inside?
+}
+
 type maze struct {
 	data    [][]int
-	portals map[point]point
+	portals map[point]portal
 	gates   map[string]point // start and end gate
 }
 
@@ -33,13 +38,14 @@ func main() {
 	start := data.gates["AA"]
 	goal := data.gates["ZZ"]
 
-	length := bfs(data, []path{{start, 0}}, goal)
+	length := bfs(data, []path{{start, 0, 0}}, goal)
 	fmt.Println(length)
 }
 
 type path struct {
 	position point
 	length   int
+	level    int
 }
 
 func bfs(data maze, list []path, goal point) int {
@@ -50,7 +56,7 @@ func bfs(data maze, list []path, goal point) int {
 
 	for len(list) > 0 {
 		p := list[0]
-		if p.position == goal {
+		if p.position == goal && p.level == 0 {
 			return p.length
 		}
 
@@ -76,26 +82,25 @@ func bfs(data maze, list []path, goal point) int {
 
 func getCandidates(data maze, p path) []path {
 	// For a point, find all nearby possible ways.
-	// TODO Add portals.
 	result := []path{}
 	view := data.data
 	pos := p.position
 
 	// Direct connection.
 	if view[pos.y+1][pos.x] == '.' {
-		np := path{point{pos.x, pos.y + 1}, p.length + 1}
+		np := path{point{pos.x, pos.y + 1}, p.length + 1, p.level}
 		result = append(result, np)
 	}
 	if view[pos.y-1][pos.x] == '.' {
-		np := path{point{pos.x, pos.y - 1}, p.length + 1}
+		np := path{point{pos.x, pos.y - 1}, p.length + 1, p.level}
 		result = append(result, np)
 	}
 	if view[pos.y][pos.x+1] == '.' {
-		np := path{point{pos.x + 1, pos.y}, p.length + 1}
+		np := path{point{pos.x + 1, pos.y}, p.length + 1, p.level}
 		result = append(result, np)
 	}
 	if view[pos.y][pos.x-1] == '.' {
-		np := path{point{pos.x - 1, pos.y}, p.length + 1}
+		np := path{point{pos.x - 1, pos.y}, p.length + 1, p.level}
 		result = append(result, np)
 	}
 
@@ -103,22 +108,47 @@ func getCandidates(data maze, p path) []path {
 	// and we do not know what the second task is.
 	pp := point{pos.x, pos.y + 1}
 	if portal, found := data.portals[pp]; found {
-		result = append(result, path{position: portal, length: p.length + 1})
+		delta := -1
+		if portal.inside {
+			delta = +1
+		}
+		result = append(result, path{position: portal.point, length: p.length + 1, level: p.level + delta})
 	}
 	pp = point{pos.x, pos.y - 1}
 	if portal, found := data.portals[pp]; found {
-		result = append(result, path{position: portal, length: p.length + 1})
+		delta := -1
+		if portal.inside {
+			delta = +1
+		}
+		result = append(result, path{position: portal.point, length: p.length + 1, level: p.level + delta})
 	}
 	pp = point{pos.x + 1, pos.y}
 	if portal, found := data.portals[pp]; found {
-		result = append(result, path{position: portal, length: p.length + 1})
+		delta := -1
+		if portal.inside {
+			delta = +1
+		}
+		result = append(result, path{position: portal.point, length: p.length + 1, level: p.level + delta})
 	}
 	pp = point{pos.x - 1, pos.y}
 	if portal, found := data.portals[pp]; found {
-		result = append(result, path{position: portal, length: p.length + 1})
+		delta := -1
+		if portal.inside {
+			delta = +1
+		}
+		result = append(result, path{position: portal.point, length: p.length + 1, level: p.level + delta})
 	}
 
 	return result
+}
+
+func newPortal(maze [][]int, x int, y int) portal {
+	// Check if we are on the outside
+	inside := true
+	if x <= 1 || x-2 >= len(maze[y]) || y <= 1 || y-2 >= len(maze) {
+		inside = false
+	}
+	return portal{point{x, y}, inside}
 }
 
 func load() maze {
@@ -144,13 +174,13 @@ func load() maze {
 	}
 
 	directionGates := computeDirectionGates(data)
-	portals := computePortalExits(directionGates)
-	gates := computeStartEndPoints(directionGates)
+	portals := computePortalExits(data, directionGates)
+	gates := computeStartEndPoints(data, directionGates)
 
 	return maze{data: data, portals: portals, gates: gates}
 }
 
-func computeStartEndPoints(directionGates map[string][]pointDir) map[string]point {
+func computeStartEndPoints(maze [][]int, directionGates map[string][]pointDir) map[string]point {
 	gates := make(map[string]point)
 	for key, value := range directionGates {
 		if len(value) > 1 {
@@ -158,13 +188,13 @@ func computeStartEndPoints(directionGates map[string][]pointDir) map[string]poin
 		}
 
 		p1 := value[0]
-		gates[key] = adapt(p1.point, p1.orientation)
+		gates[key] = adapt(maze, p1.point, p1.orientation).point
 	}
 	return gates
 }
 
-func computePortalExits(directionGates map[string][]pointDir) map[point]point {
-	portals := make(map[point]point)
+func computePortalExits(maze [][]int, directionGates map[string][]pointDir) map[point]portal {
+	portals := make(map[point]portal)
 	for _, value := range directionGates {
 		// Ignore start and end gate.
 		if len(value) < 2 {
@@ -173,8 +203,8 @@ func computePortalExits(directionGates map[string][]pointDir) map[point]point {
 
 		p1 := value[0]
 		p2 := value[1]
-		portals[p1.point] = adapt(p2.point, p2.orientation)
-		portals[p2.point] = adapt(p1.point, p1.orientation)
+		portals[p1.point] = adapt(maze, p2.point, p2.orientation)
+		portals[p2.point] = adapt(maze, p1.point, p1.orientation)
 	}
 	return portals
 }
@@ -220,16 +250,21 @@ func computeDirectionGates(data [][]int) map[string][]pointDir {
 	return directionGates
 }
 
-func adapt(p point, orientation int) point {
+func adapt(maze [][]int, p point, orientation int) portal {
+	inside := false
+	if p.x <= 1 || p.x-2 >= len(maze[p.y]) || p.y <= 1 || p.y-2 >= len(maze) {
+		inside = true
+	}
+
 	switch orientation {
 	case 1:
-		return point{p.x, p.y - 1}
+		return portal{point{p.x, p.y - 1}, inside}
 	case 2:
-		return point{p.x, p.y + 1}
+		return portal{point{p.x, p.y + 1}, inside}
 	case 3:
-		return point{p.x - 1, p.y}
+		return portal{point{p.x - 1, p.y}, inside}
 	case 4:
-		return point{p.x + 1, p.y}
+		return portal{point{p.x + 1, p.y}, inside}
 	}
 
 	panic(fmt.Sprintf("Unknown orientation: %d", orientation))

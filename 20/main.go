@@ -55,7 +55,7 @@ func bfs(data maze, list []path, goal point) int {
 		}
 
 		list = list[1:]
-		if p.length > 64 {
+		if p.length > 1024 {
 			continue
 		}
 

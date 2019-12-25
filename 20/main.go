@@ -126,8 +126,17 @@ func load() maze {
 
 	bytes, _ := ioutil.ReadFile("input.txt")
 	lines := strings.Split(string(bytes), "\n")
+
+	// Determine maximum column length.
+	maxLen := 0
+	for _, line := range lines {
+		if len(line) > maxLen {
+			maxLen = len(line)
+		}
+	}
+
 	for y, row := range lines {
-		colMem := make([]int, len(row))
+		colMem := make([]int, maxLen)
 		data = append(data, colMem)
 		for x, col := range row {
 			data[y][x] = int(col)

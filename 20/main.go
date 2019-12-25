@@ -37,6 +37,7 @@ func main() {
 
 	start := data.gates["AA"]
 	goal := data.gates["ZZ"]
+	fmt.Println("Goal", goal)
 
 	length := bfs(data, []path{{start, 0, 0}}, goal)
 	fmt.Println(length)
@@ -48,14 +49,23 @@ type path struct {
 	level    int
 }
 
+func (p path) String() string {
+	return fmt.Sprintf("%v/length=%d/level=%d", p.position, p.length, p.level)
+}
+
 func bfs(data maze, list []path, goal point) int {
-	history := make(map[point]bool)
+	type historyPoint struct {
+		point
+		level int
+	}
+	history := make(map[historyPoint]bool)
 	for _, p := range list {
-		history[p.position] = true
+		history[historyPoint{point: p.position, level: 0}] = true
 	}
 
 	for len(list) > 0 {
 		p := list[0]
+		fmt.Println("\nExploring", p)
 		if p.position == goal && p.level == 0 {
 			return p.length
 		}
@@ -67,9 +77,10 @@ func bfs(data maze, list []path, goal point) int {
 
 		cs := getCandidates(data, p)
 		for _, c := range cs {
-			if history[c.position] == false {
+			if history[historyPoint{c.position, c.level}] == false {
+				fmt.Println("+ candidate", c)
 				list = append(list, c)
-				history[c.position] = true
+				history[historyPoint{c.position, c.level}] = true
 			}
 		}
 

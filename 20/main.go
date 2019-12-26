@@ -71,24 +71,24 @@ func bfs(data maze, list []path, goal point) int {
 
 	for len(list) > 0 {
 		p := list[0]
-		fmt.Println("\nExploring", p)
-		if name, found := debugPortals[p.position]; found {
-			fmt.Println("* before portal", name)
-		}
+		//fmt.Println("\nExploring", p)
+		//if name, found := debugPortals[p.position]; found {
+		//fmt.Println("* before portal", name)
+		//}
 
 		if p.position == goal && p.level == 0 {
 			return p.length
 		}
 
 		list = list[1:]
-		if p.length > 512 {
+		if p.length > 16384 {
 			continue
 		}
 
 		cs := getCandidates(data, p)
 		for _, c := range cs {
 			if history[historyPoint{c.position, c.level}] == false {
-				fmt.Println("+ candidate", c)
+				//fmt.Println("+ candidate", c)
 				list = append(list, c)
 				history[historyPoint{c.position, c.level}] = true
 			}
@@ -129,9 +129,9 @@ func getCandidates(data maze, p path) []path {
 	// and we do not know what the second task is.
 	pp := point{pos.x, pos.y + 1}
 	if portal, found := data.portals[pp]; found && (p.level >= 1 || portal.inside) {
-		if pt, f := debugPortals[portal.point]; f {
-			fmt.Println("\t\t\t\t\t\tUsing portal", pt)
-		}
+		//if pt, f := debugPortals[portal.point]; f {
+		//fmt.Println("\t\t\t\t\t\tUsing portal", pt)
+		//}
 		delta := -1
 		if portal.inside {
 			delta = +1
@@ -140,9 +140,9 @@ func getCandidates(data maze, p path) []path {
 	}
 	pp = point{pos.x, pos.y - 1}
 	if portal, found := data.portals[pp]; found && (p.level >= 1 || portal.inside) {
-		if pt, f := debugPortals[portal.point]; f {
-			fmt.Println("\t\t\t\t\t\tUsing portal", pt)
-		}
+		//if pt, f := debugPortals[portal.point]; f {
+		//fmt.Println("\t\t\t\t\t\tUsing portal", pt)
+		//}
 		delta := -1
 		if portal.inside {
 			delta = +1
@@ -151,9 +151,9 @@ func getCandidates(data maze, p path) []path {
 	}
 	pp = point{pos.x + 1, pos.y}
 	if portal, found := data.portals[pp]; found && (p.level >= 1 || portal.inside) {
-		if pt, f := debugPortals[portal.point]; f {
-			fmt.Println("\t\t\t\t\t\tUsing portal", pt)
-		}
+		//if pt, f := debugPortals[portal.point]; f {
+		//fmt.Println("\t\t\t\t\t\tUsing portal", pt)
+		//}
 		delta := -1
 		if portal.inside {
 			delta = +1
@@ -162,9 +162,9 @@ func getCandidates(data maze, p path) []path {
 	}
 	pp = point{pos.x - 1, pos.y}
 	if portal, found := data.portals[pp]; found && (p.level >= 1 || portal.inside) {
-		if pt, f := debugPortals[portal.point]; f {
-			fmt.Println("\t\t\t\t\t\tUsing portal", pt)
-		}
+		//if pt, f := debugPortals[portal.point]; f {
+		//fmt.Println("\t\t\t\t\t\tUsing portal", pt)
+		//}
 		delta := -1
 		if portal.inside {
 			delta = +1

@@ -14,6 +14,10 @@ type point struct {
 	y int
 }
 
+func (p point) String() string {
+	return fmt.Sprintf("[%d,%d]", p.y, p.x)
+}
+
 type portal struct {
 	point       // Goal
 	inside bool // Is the source of the portal on the inside?
@@ -58,7 +62,7 @@ func bfs(data maze, list []path, goal point) int {
 
 	for len(list) > 0 {
 		p := list[0]
-		//fmt.Println("\nExploring", p)
+		fmt.Println("\nExploring", p)
 		if name, found := debugPortals[p.position]; found {
 			fmt.Println("USING PORTAL", name)
 			wait()
@@ -76,7 +80,7 @@ func bfs(data maze, list []path, goal point) int {
 		cs := getCandidates(data, p)
 		for _, c := range cs {
 			if history[historyPoint{c.position, c.level}] == false {
-				//fmt.Println("+ candidate", c)
+				fmt.Println("+ candidate", c)
 				list = append(list, c)
 				history[historyPoint{c.position, c.level}] = true
 			}
@@ -205,19 +209,8 @@ func computeStartEndPoints(maze [][]int, directionGates map[string][]pointDir) m
 var debugPortals = make(map[point]string)
 
 func computePortalExits(maze [][]int, directionGates map[string][]pointDir) map[point]portal {
-	for key, value := range directionGates {
-		for _, p := range value {
-			p2 := adapt(maze, p.point, p.point, p.orientation)
-			s := "IN"
-			if !p2.inside {
-				s = "OUT"
-			}
-			debugPortals[p2.point] = key + "/" + s
-		}
-	}
-
 	portals := make(map[point]portal)
-	for _, value := range directionGates {
+	for key, value := range directionGates {
 		// Ignore start and end gate.
 		if len(value) < 2 {
 			continue
@@ -227,6 +220,26 @@ func computePortalExits(maze [][]int, directionGates map[string][]pointDir) map[
 		p2 := value[1]
 		portals[p1.point] = adapt(maze, p1.point, p2.point, p2.orientation)
 		portals[p2.point] = adapt(maze, p1.point, p1.point, p1.orientation)
+
+		s := "/OUT"
+		if portals[p1.point].inside {
+			s = "/IN"
+		}
+		IN
+		AND
+		OUT
+		Computation
+		wrong
+		or
+		solely
+		debugging
+		output?
+		debugPortals[portals[p1.point].point] = key + s
+		s = "/OUT"
+		if portals[p2.point].inside {
+			s = "/IN"
+		}
+		debugPortals[portals[p2.point].point] = key + s
 	}
 	return portals
 }

@@ -27,3 +27,4 @@ After I have the correct solution, I leave the source code as it is, ... to clea
 | 17   | [Set and Forget](https://adventofcode.com/2019/day/17) | [17](17) | Visualization, path tracing and grammar builder |
 | 18   | [Many-Worlds Interpretation](https://adventofcode.com/2019/day/18) | [18](18) | Maze exploration, Graph search, Caching |
 | 19   | [Tractor Beam](https://adventofcode.com/2019/day/19) | [19](19) | Array arithmetic |
+| 20   | [Donut Maze](https://adventofcode.com/2019/day/20) | [20](20) | Backtracking, Path finding, Input parsing |

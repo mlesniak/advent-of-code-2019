@@ -30,11 +30,20 @@ type maze struct {
 }
 
 func main() {
+	fmt.Println("Start")
 	data := load()
+	//for key, value := range debugPortals {
+	//    fmt.Println(key, value)
+	//}
+	//for key, value := range data.portals {
+	//    fmt.Println(key, value, value.inside)
+	//}
+	//wait()
 
 	start := data.gates["AA"]
 	goal := data.gates["ZZ"]
-	fmt.Println("Goal", goal)
+	fmt.Println("AA", start)
+	fmt.Println("ZZ", goal)
 
 	length := bfs(data, []path{{start, 0, 0}}, goal)
 	fmt.Println(length)
@@ -64,8 +73,7 @@ func bfs(data maze, list []path, goal point) int {
 		p := list[0]
 		fmt.Println("\nExploring", p)
 		if name, found := debugPortals[p.position]; found {
-			fmt.Println("USING PORTAL", name)
-			wait()
+			fmt.Println("* before portal", name)
 		}
 
 		if p.position == goal && p.level == 0 {
@@ -73,7 +81,7 @@ func bfs(data maze, list []path, goal point) int {
 		}
 
 		list = list[1:]
-		if p.length > 1024 {
+		if p.length > 512 {
 			continue
 		}
 
@@ -120,7 +128,10 @@ func getCandidates(data maze, p path) []path {
 	// We could have portals on the points itself, i.e. not a step away, but this would be functionally incorrect
 	// and we do not know what the second task is.
 	pp := point{pos.x, pos.y + 1}
-	if portal, found := data.portals[pp]; found && (p.level > 1 || portal.inside) {
+	if portal, found := data.portals[pp]; found && (p.level >= 1 || portal.inside) {
+		if pt, f := debugPortals[portal.point]; f {
+			fmt.Println("\t\t\t\t\t\tUsing portal", pt)
+		}
 		delta := -1
 		if portal.inside {
 			delta = +1
@@ -128,7 +139,10 @@ func getCandidates(data maze, p path) []path {
 		result = append(result, path{position: portal.point, length: p.length + 1, level: p.level + delta})
 	}
 	pp = point{pos.x, pos.y - 1}
-	if portal, found := data.portals[pp]; found && (p.level > 1 || portal.inside) {
+	if portal, found := data.portals[pp]; found && (p.level >= 1 || portal.inside) {
+		if pt, f := debugPortals[portal.point]; f {
+			fmt.Println("\t\t\t\t\t\tUsing portal", pt)
+		}
 		delta := -1
 		if portal.inside {
 			delta = +1
@@ -136,7 +150,10 @@ func getCandidates(data maze, p path) []path {
 		result = append(result, path{position: portal.point, length: p.length + 1, level: p.level + delta})
 	}
 	pp = point{pos.x + 1, pos.y}
-	if portal, found := data.portals[pp]; found && (p.level > 1 || portal.inside) {
+	if portal, found := data.portals[pp]; found && (p.level >= 1 || portal.inside) {
+		if pt, f := debugPortals[portal.point]; f {
+			fmt.Println("\t\t\t\t\t\tUsing portal", pt)
+		}
 		delta := -1
 		if portal.inside {
 			delta = +1
@@ -144,7 +161,10 @@ func getCandidates(data maze, p path) []path {
 		result = append(result, path{position: portal.point, length: p.length + 1, level: p.level + delta})
 	}
 	pp = point{pos.x - 1, pos.y}
-	if portal, found := data.portals[pp]; found && (p.level > 1 || portal.inside) {
+	if portal, found := data.portals[pp]; found && (p.level >= 1 || portal.inside) {
+		if pt, f := debugPortals[portal.point]; f {
+			fmt.Println("\t\t\t\t\t\tUsing portal", pt)
+		}
 		delta := -1
 		if portal.inside {
 			delta = +1
@@ -219,27 +239,18 @@ func computePortalExits(maze [][]int, directionGates map[string][]pointDir) map[
 		p1 := value[0]
 		p2 := value[1]
 		portals[p1.point] = adapt(maze, p1.point, p2.point, p2.orientation)
-		portals[p2.point] = adapt(maze, p1.point, p1.point, p1.orientation)
+		portals[p2.point] = adapt(maze, p2.point, p1.point, p1.orientation)
 
 		s := "/OUT"
 		if portals[p1.point].inside {
 			s = "/IN"
 		}
-		IN
-		AND
-		OUT
-		Computation
-		wrong
-		or
-		solely
-		debugging
-		output?
-		debugPortals[portals[p1.point].point] = key + s
+		debugPortals[portals[p2.point].point] = key + s
 		s = "/OUT"
 		if portals[p2.point].inside {
 			s = "/IN"
 		}
-		debugPortals[portals[p2.point].point] = key + s
+		debugPortals[portals[p1.point].point] = key + s
 	}
 	return portals
 }
@@ -286,9 +297,9 @@ func computeDirectionGates(data [][]int) map[string][]pointDir {
 }
 
 func adapt(maze [][]int, src point, p point, orientation int) portal {
-	inside := false
-	if src.x <= 1 || src.x-2 >= len(maze[src.y]) || src.y <= 1 || src.y-2 >= len(maze) {
-		inside = true
+	inside := true
+	if src.x <= 1 || src.x >= len(maze[src.y])-3 || src.y <= 1 || src.y >= len(maze)-2 {
+		inside = false
 	}
 
 	switch orientation {

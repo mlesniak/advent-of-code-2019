@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -13,10 +14,16 @@ type channel chan int
 func main() {
 	memory, in, out, stop := load()
 
-	commands := []string{
-		"NOT D J",
-		"WALK",
+	bytes, _ := ioutil.ReadFile(os.Args[1])
+	cs := strings.Split(string(bytes), "\n")
+	commands := []string{}
+	for _, line := range cs {
+		if len(strings.Trim(line, " \t")) == 0 {
+			continue
+		}
+		commands = append(commands, line)
 	}
+
 	process(commands, in, stop, out, memory)
 }
 
@@ -29,7 +36,8 @@ func process(commands []string, in channel, stop *bool, out channel, memory []in
 	go func() {
 		for !*stop {
 			c := <-out
-			fmt.Print(string(c))
+			fmt.Println(c)
+			//fmt.Print(string(c))
 		}
 	}()
 	compute(memory, in, out, stop)
@@ -313,9 +321,9 @@ func load() ([]int, channel, channel, *bool) {
 }
 
 func (c channel) send(msg string) {
-	if len(msg) > 20 {
-		panic(fmt.Sprintf("Message too long len(%s)=%d", msg, len(msg)))
-	}
+	//if len(msg) > 20 {
+	//	panic(fmt.Sprintf("Message too long len(%s)=%d", msg, len(msg)))
+	//}
 	for i := 0; i < len(msg); i++ {
 		r := msg[i]
 		c <- int(r)

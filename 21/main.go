@@ -21,7 +21,16 @@ func main() {
 		if len(strings.Trim(line, " \t")) == 0 {
 			continue
 		}
+		if len(line) > 0 && line[0] == '#' {
+			continue
+		}
+		if line == "---" {
+			break
+		}
 		commands = append(commands, line)
+	}
+	for _, command := range commands {
+		fmt.Println(command)
 	}
 
 	process(commands, in, stop, out, memory)
@@ -36,8 +45,8 @@ func process(commands []string, in channel, stop *bool, out channel, memory []in
 	go func() {
 		for !*stop {
 			c := <-out
-			fmt.Println(c)
-			//fmt.Print(string(c))
+			//fmt.Println(c)
+			fmt.Print(string(c))
 		}
 	}()
 	compute(memory, in, out, stop)

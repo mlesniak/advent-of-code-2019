@@ -13,15 +13,18 @@ type channel chan int
 func main() {
 	memory, in, out, stop := load()
 
-	// Send commands.
 	commands := []string{
 		"NOT D J",
 		"WALK",
 	}
+	process(commands, in, stop, out, memory)
+}
+
+func process(commands []string, in channel, stop *bool, out channel, memory []int) {
+	// Send commands.
 	for _, command := range commands {
 		in.send(command)
 	}
-
 	// Output while output is available.
 	go func() {
 		for !*stop {

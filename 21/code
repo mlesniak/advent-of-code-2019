@@ -1,51 +1,37 @@
+# Jump if hole in front
 NOT A J
 
-#NOT C T
-#OR D T  
-#OR T J
+NOT B T
+OR T J
 
-AND C T 
 NOT C T
-OR T J  
+OR T J
+
+AND D J 
+
+AND E T
+OR H T
+AND T J
 
 RUN
 ---
 
+     ABCDEFGH
 ....@............
-#####..#.########
-     ABCD
-    ABCD
-
-a=0 -> not A
-
-c=0 && d=1
-
-j=
-
-JUMP                                                    =TRUE
-  @..............
-   ABCDEFGHI
-   .########        a=0
-
-
-NOT JUMP                                                =FALSE
-  @..............
-   ABCDEFGHI
-   ##.#.##.#        c=0 and d=1       
-   ..#.#####        c=1 and d=0       
-
-
-
-J=  !a || !((!c && d) || (c && !d))
+#####.#..########
     
-    ! a || (c && d) || (!c && !d)
+    ABCDEFGH
+...@.............
+#####..#.########
 
-    AND C D 
-    NOT C T
-    OR T D  
+   ABCDEFGH
+..@..............
+#####...#########
 
-    c 0 d 0     1
-    c 1 d 0     0
-    c 1 d 1     1
-    c 0 d 1     0 
+   ABCDEFGH
+..@..............
+#####.#.##.#.####
 
+ ABCDEFGH
+@................
+#####..#.########

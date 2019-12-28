@@ -45,8 +45,8 @@ func process(commands []string, in channel, stop *bool, out channel, memory []in
 	go func() {
 		for !*stop {
 			c := <-out
-			//fmt.Println(c)
-			fmt.Print(string(c))
+			fmt.Println(c)
+			//fmt.Print(string(c))
 		}
 	}()
 	compute(memory, in, out, stop)
@@ -310,7 +310,7 @@ func compute(memory []int, in channel, out channel, stop *bool) {
 
 func load() ([]int, channel, channel, *bool) {
 	const MemorySize = 1000000
-	const ChannelSize = 256
+	const ChannelSize = 1024
 
 	var memory []int
 	bytes, _ := ioutil.ReadFile("input.txt")

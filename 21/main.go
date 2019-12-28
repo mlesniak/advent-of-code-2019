@@ -46,7 +46,7 @@ func process(commands []string, in channel, stop *bool, out channel, memory []in
 		for !*stop {
 			c := <-out
 			fmt.Println(c)
-			//fmt.Print(string(c))
+			fmt.Print(string(c))
 		}
 	}()
 	compute(memory, in, out, stop)

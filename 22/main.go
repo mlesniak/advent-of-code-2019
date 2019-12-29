@@ -60,9 +60,11 @@ func (d deck) deal() deck {
 
 func main() {
 	d := newDeck(10)
-	d = d.increment(7)
-	d = d.deal()
-	d = d.deal()
+	//d = d.increment(7)
+	//d = d.deal()
+	//d = d.deal()
+
+	d = d.cut(6).increment(7).deal()
 	fmt.Println(d)
 }
 

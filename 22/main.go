@@ -27,6 +27,10 @@ func newDeck(size int) deck {
 }
 
 func (d deck) cut(n int) deck {
+	if n < 0 {
+		n = len(d.cards) - n*-1
+	}
+
 	nd := make([]int, 0)
 	nd = append(nd, d.cards[n:]...)
 	nd = append(nd, d.cards[:n]...)
@@ -45,7 +49,7 @@ func (d deck) deal() deck {
 
 func main() {
 	d := newDeck(10)
-	d2 := d.cut(3)
+	d2 := d.cut(-4)
 	fmt.Println(d2)
 }
 

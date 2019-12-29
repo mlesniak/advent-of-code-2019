@@ -60,8 +60,10 @@ func (d deck) deal() deck {
 
 func main() {
 	d := newDeck(10)
-	d2 := d.increment(3)
-	fmt.Println(d2)
+	d = d.increment(7)
+	d = d.deal()
+	d = d.deal()
+	fmt.Println(d)
 }
 
 // TODO Parse into commands

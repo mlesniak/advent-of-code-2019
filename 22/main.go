@@ -26,6 +26,17 @@ func newDeck(size int) deck {
 	return deck{cards: nd}
 }
 
+func (d deck) increment(n int) deck {
+	nd := make([]int, len(d.cards))
+	idx := 0
+	for i := 0; i < len(d.cards); i++ {
+		nd[idx] = d.cards[i]
+		idx = (idx + n) % len(d.cards)
+	}
+
+	return deck{cards: nd}
+}
+
 func (d deck) cut(n int) deck {
 	if n < 0 {
 		n = len(d.cards) - n*-1
@@ -49,7 +60,7 @@ func (d deck) deal() deck {
 
 func main() {
 	d := newDeck(10)
-	d2 := d.cut(-4)
+	d2 := d.increment(3)
 	fmt.Println(d2)
 }
 

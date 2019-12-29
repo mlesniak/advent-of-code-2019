@@ -59,15 +59,47 @@ func (d deck) deal() deck {
 }
 
 func main() {
-	d := newDeck(10)
+	//d := newDeck(10)
 	//d = d.increment(7)
 	//d = d.deal()
 	//d = d.deal()
-
 	//d = d.cut(6).increment(7).deal()
+	//d = d.increment(7).increment(9).cut(-2)
+	//fmt.Println(d)
 
-	d = d.increment(7).increment(9).cut(-2)
-	fmt.Println(d)
+	d := newDeck(10007)
+	commands := load()
+	fmt.Println(commands)
+	for _, command := range commands {
+		if command == "deal into new stack" {
+			fmt.Println("Dealing new stack")
+			d = d.deal()
+			continue
+		}
+
+		cut := 0
+		n, _ := fmt.Sscanf(command, "cut %d\n", &cut)
+		if n > 0 {
+			fmt.Println("Cutting", cut)
+			d = d.cut(cut)
+			continue
+		}
+
+		inc := 0
+		n, _ = fmt.Sscanf(command, "deal with increment %d\n", &inc)
+		if n > 0 {
+			fmt.Println("Incrementing", inc)
+			d = d.increment(inc)
+			continue
+		}
+	}
+
+	for key, value := range d.cards {
+		if value == 2019 {
+			fmt.Println(key)
+			break
+		}
+	}
 }
 
 // TODO Parse into commands

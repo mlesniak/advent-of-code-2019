@@ -8,6 +8,7 @@ import (
 	"strings"
 )
 
+// TODO Is a typedef sufficient?
 type deck struct {
 	cards []int
 }
@@ -25,6 +26,14 @@ func newDeck(size int) deck {
 	return deck{cards: nd}
 }
 
+func (d deck) cut(n int) deck {
+	nd := make([]int, 0)
+	nd = append(nd, d.cards[n:]...)
+	nd = append(nd, d.cards[:n]...)
+
+	return deck{cards: nd}
+}
+
 func (d deck) deal() deck {
 	nd := make([]int, len(d.cards))
 	for index, value := range d.cards {
@@ -36,7 +45,7 @@ func (d deck) deal() deck {
 
 func main() {
 	d := newDeck(10)
-	d2 := d.deal()
+	d2 := d.cut(3)
 	fmt.Println(d2)
 }
 

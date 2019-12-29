@@ -64,7 +64,9 @@ func main() {
 	//d = d.deal()
 	//d = d.deal()
 
-	d = d.cut(6).increment(7).deal()
+	//d = d.cut(6).increment(7).deal()
+
+	d = d.increment(7).increment(9).cut(-2)
 	fmt.Println(d)
 }
 

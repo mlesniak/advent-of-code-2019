@@ -1,21 +1,31 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"strconv"
 	"strings"
 	"time"
 )
 
+type memory []int
 type channel chan int
 
 func main() {
-	memory, _, _, _ := load()
-	fmt.Println(len(memory))
+	numComputers := 50
+	memories := make([]memory, numComputers)
+	inputs := make([]channel, numComputers)
+	outputs := make([]channel, numComputers)
+
+	// Create 50 copies.
+	for i := 0; i < numComputers; i++ {
+		memory, in, out, _ := load()
+		memories[i] = memory
+		inputs[i] = in
+		outputs[i] = out
+	}
 }
 
-func compute(memory []int, in channel, out channel, stop *bool) {
+func compute(memory memory, in channel, out channel, stop *bool) {
 	relBase := 0
 
 	for ip := 0; ip < len(memory); {
@@ -271,9 +281,9 @@ func compute(memory []int, in channel, out channel, stop *bool) {
 	}
 }
 
-func load() ([]int, channel, channel, *bool) {
+func load() (memory, channel, channel, *bool) {
 	const MemorySize = 1000000
-	const ChannelSize = 1024
+	const ChannelSize = 16384
 
 	var memory []int
 	bytes, _ := ioutil.ReadFile("input.txt")

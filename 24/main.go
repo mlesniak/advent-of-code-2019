@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"os"
 	"strings"
 )
@@ -16,21 +17,21 @@ type point struct {
 // Non-empty fields are true.
 type area map[point]bool
 
-//func (a area) Score() int {
-//	sum := 0
-//
-//	exp := 0
-//	for _, line := range a {
-//		for _, value := range line {
-//			if value == 1 {
-//				sum += int(math.Pow(float64(2), float64(exp)))
-//			}
-//			exp++
-//		}
-//	}
-//
-//	return sum
-//}
+func (a area) Score() int {
+	sum := 0
+
+	exp := 0
+	for row := 0; row < 5; row++ {
+		for col := 0; col < 5; col++ {
+			if a[point{row, col}] {
+				sum += int(math.Pow(float64(2), float64(exp)))
+			}
+			exp++
+		}
+	}
+
+	return sum
+}
 
 //func (a area) Next() area {
 //	// Init new area.
@@ -110,6 +111,8 @@ func (a area) String() string {
 func main() {
 	a := load()
 	fmt.Println(a)
+	fmt.Println(a.Score())
+
 	//history := make(map[int]bool)
 	//for {
 	//	a = a.Next()

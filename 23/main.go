@@ -23,6 +23,15 @@ func main() {
 		inputs[i] = in
 		outputs[i] = out
 	}
+
+	// Start all of them.
+	for i := 0; i < numComputers; i++ {
+		var stop bool
+		go func() {
+
+		}()
+		compute(memories[i], inputs[i], outputs[i], &stop)
+	}
 }
 
 func compute(memory memory, in channel, out channel, stop *bool) {

@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"time"
 )
 
@@ -32,6 +34,19 @@ func main() {
 
 	natValueX := -1
 	natValueY := -1
+	idleCounter := int32(0)
+
+	// NAT monitoring.
+	go func() {
+		for {
+			fmt.Println("Checking idleness; idleCounter=", idleCounter)
+			if idleCounter == int32(numComputers) {
+				fmt.Println("Network is idle")
+				os.Exit(0)
+			}
+			time.Sleep(time.Millisecond * 10)
+		}
+	}()
 
 	// Start all of them.
 	for addr := 0; addr < numComputers; addr++ {
@@ -42,13 +57,17 @@ func main() {
 			inputs[addr] <- addr
 
 			// Receive packets
+			sendIdleness := false
 			for {
+				empty := true
+
 				// Do we have any inputs waiting for us?
 				if len(io[addr]) > 0 {
 					x := <-io[addr]
 					inputs[addr] <- x
 					y := <-io[addr]
 					inputs[addr] <- y
+					empty = false
 				} else {
 					// Nothing there, provide -1
 					inputs[addr] <- -1
@@ -56,6 +75,7 @@ func main() {
 
 				// Do we have any outputs waiting?
 				if len(outputs[addr]) > 0 {
+					empty = false
 					destination := <-outputs[addr]
 					x := <-outputs[addr]
 					y := <-outputs[addr]
@@ -70,13 +90,26 @@ func main() {
 					io[destination] <- x
 					io[destination] <- y
 				}
+
+				if empty && !sendIdleness {
+					// Increase counter
+					atomic.AddInt32(&idleCounter, 1)
+					sendIdleness = true
+				} else {
+					// Decreae counter
+					if sendIdleness {
+						atomic.AddInt32(&idleCounter, -1)
+						sendIdleness = false
+					}
+				}
 			}
 		}(addr)
 		fmt.Println("Starting NIC", addr)
 		go compute(memories[addr], inputs[addr], outputs[addr], &stop)
 	}
 
-	time.Sleep(time.Second * 10)
+	// Add waitgroup.
+	time.Sleep(time.Second * 100)
 }
 
 func compute(memory memory, in channel, out channel, stop *bool) {

@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -30,6 +29,9 @@ func main() {
 		inputs[i] = in
 		outputs[i] = out
 	}
+
+	natValueX := -1
+	natValueY := -1
 
 	// Start all of them.
 	for addr := 0; addr < numComputers; addr++ {
@@ -58,10 +60,11 @@ func main() {
 					x := <-outputs[addr]
 					y := <-outputs[addr]
 
-					// Check for first packet
+					// Handle NAT packages
 					if destination == 255 {
-						fmt.Println(y)
-						os.Exit(0)
+						natValueX = x
+						natValueY = y
+						continue
 					}
 
 					io[destination] <- x

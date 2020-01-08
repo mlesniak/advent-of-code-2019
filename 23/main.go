@@ -18,63 +18,62 @@ func main() {
 	inputs := make([]channel, numComputers)
 	outputs := make([]channel, numComputers)
 	io := make([]channel, numComputers)
+	for i := 0; i < numComputers; i++ {
+		io[i] = make(channel, 65536)
+	}
 
 	// Create 50 copies.
 	for i := 0; i < numComputers; i++ {
+		fmt.Println("Preparing NIC", i)
 		memory, in, out, _ := load()
 		memories[i] = memory
 		inputs[i] = in
 		outputs[i] = out
 	}
 
-	// Map intcode address to actual channels on io.
-	network := make(map[int]int)
-
 	// Start all of them.
-	for i := 0; i < numComputers; i++ {
+	for addr := 0; addr < numComputers; addr++ {
 		var stop bool
-		go func(storage int) {
-			// Receive network address
-			address := <-inputs[storage]
-			network[address] = storage
+		// Without a dedicated parameter this leads to an interesting race condition for addr=49 :-D.
+		go func(addr int) {
+			// Set network address for this computer.
+			inputs[addr] <- addr
 
 			// Receive packets
 			for {
 				// Do we have any inputs waiting for us?
-				if len(io[storage]) > 0 {
-					x := <-io[storage]
-					inputs[storage] <- x
-					y := <-io[storage]
-					inputs[storage] <- y
+				if len(io[addr]) > 0 {
+					x := <-io[addr]
+					inputs[addr] <- x
+					y := <-io[addr]
+					inputs[addr] <- y
 				} else {
 					// Nothing there, provide -1
-					inputs[storage] <- -1
+					inputs[addr] <- -1
 				}
 
 				// Do we have any outputs waiting?
-				if len(outputs[storage]) > 0 {
-					destination := <-outputs[storage]
-					x := <-outputs[storage]
-					y := <-outputs[storage]
-
-					target := network[destination]
-					io[target] <- x
-					io[target] <- y
+				if len(outputs[addr]) > 0 {
+					destination := <-outputs[addr]
+					x := <-outputs[addr]
+					y := <-outputs[addr]
 
 					// Check for first packet
-					if target == 255 {
+					if destination == 255 {
 						fmt.Println(y)
 						os.Exit(0)
 					}
+
+					io[destination] <- x
+					io[destination] <- y
 				}
-
-				// Do we have any output instructions waiting?
-
 			}
-		}(i)
-		fmt.Println("Starting NIC", i)
-		compute(memories[i], inputs[i], outputs[i], &stop)
+		}(addr)
+		fmt.Println("Starting NIC", addr)
+		go compute(memories[addr], inputs[addr], outputs[addr], &stop)
 	}
+
+	time.Sleep(time.Second * 10)
 }
 
 func compute(memory memory, in channel, out channel, stop *bool) {

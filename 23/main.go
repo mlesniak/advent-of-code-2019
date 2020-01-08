@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -15,6 +17,7 @@ func main() {
 	memories := make([]memory, numComputers)
 	inputs := make([]channel, numComputers)
 	outputs := make([]channel, numComputers)
+	io := make([]channel, numComputers)
 
 	// Create 50 copies.
 	for i := 0; i < numComputers; i++ {
@@ -24,12 +27,52 @@ func main() {
 		outputs[i] = out
 	}
 
+	// Map intcode address to actual channels on io.
+	network := make(map[int]int)
+
 	// Start all of them.
 	for i := 0; i < numComputers; i++ {
 		var stop bool
-		go func() {
+		go func(storage int) {
+			// Receive network address
+			address := <-inputs[storage]
+			network[address] = storage
 
-		}()
+			// Receive packets
+			for {
+				// Do we have any inputs waiting for us?
+				if len(io[storage]) > 0 {
+					x := <-io[storage]
+					inputs[storage] <- x
+					y := <-io[storage]
+					inputs[storage] <- y
+				} else {
+					// Nothing there, provide -1
+					inputs[storage] <- -1
+				}
+
+				// Do we have any outputs waiting?
+				if len(outputs[storage]) > 0 {
+					destination := <-outputs[storage]
+					x := <-outputs[storage]
+					y := <-outputs[storage]
+
+					target := network[destination]
+					io[target] <- x
+					io[target] <- y
+
+					// Check for first packet
+					if target == 255 {
+						fmt.Println(y)
+						os.Exit(0)
+					}
+				}
+
+				// Do we have any output instructions waiting?
+
+			}
+		}(i)
+		fmt.Println("Starting NIC", i)
 		compute(memories[i], inputs[i], outputs[i], &stop)
 	}
 }

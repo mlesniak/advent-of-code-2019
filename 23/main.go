@@ -37,14 +37,27 @@ func main() {
 	idleCounter := int32(0)
 
 	// NAT monitoring.
+	maxIdle := int32(10000)
+	received := make(map[int]bool)
 	go func() {
 		for {
 			fmt.Println("Checking idleness; idleCounter=", idleCounter)
-			if idleCounter == int32(numComputers) {
-				fmt.Println("Network is idle")
-				os.Exit(0)
+			if idleCounter >= maxIdle {
+				// Send packet to address 0.
+				io[0] <- natValueX
+				io[0] <- natValueY
+
+				// Remember Y value
+				if received[natValueY] {
+					fmt.Println(natValueY)
+					os.Exit(0)
+				}
+				received[natValueY] = true
+
+				atomic.StoreInt32(&idleCounter, 0)
+				fmt.Println("IDLE network", received)
 			}
-			time.Sleep(time.Millisecond * 10)
+			time.Sleep(time.Millisecond * 1000)
 		}
 	}()
 
@@ -57,25 +70,22 @@ func main() {
 			inputs[addr] <- addr
 
 			// Receive packets
-			sendIdleness := false
 			for {
-				empty := true
-
 				// Do we have any inputs waiting for us?
 				if len(io[addr]) > 0 {
 					x := <-io[addr]
 					inputs[addr] <- x
 					y := <-io[addr]
 					inputs[addr] <- y
-					empty = false
 				} else {
 					// Nothing there, provide -1
 					inputs[addr] <- -1
+
+					atomic.AddInt32(&idleCounter, 1)
 				}
 
 				// Do we have any outputs waiting?
 				if len(outputs[addr]) > 0 {
-					empty = false
 					destination := <-outputs[addr]
 					x := <-outputs[addr]
 					y := <-outputs[addr]
@@ -89,18 +99,6 @@ func main() {
 
 					io[destination] <- x
 					io[destination] <- y
-				}
-
-				if empty && !sendIdleness {
-					// Increase counter
-					atomic.AddInt32(&idleCounter, 1)
-					sendIdleness = true
-				} else {
-					// Decreae counter
-					if sendIdleness {
-						atomic.AddInt32(&idleCounter, -1)
-						sendIdleness = false
-					}
 				}
 			}
 		}(addr)

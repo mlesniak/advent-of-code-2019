@@ -105,11 +105,17 @@ func (a area) Neighbors(row int, col int) int {
 func main() {
 	a := load()
 	fmt.Println(a)
+	history := make(map[int]bool)
 	for {
 		a = a.Next()
 		fmt.Println(a)
-		fmt.Println(a.Score())
-		wait()
+		score := a.Score()
+		fmt.Println(score)
+		if history[score] {
+			fmt.Println(score)
+			break
+		}
+		history[score] = true
 	}
 }
 

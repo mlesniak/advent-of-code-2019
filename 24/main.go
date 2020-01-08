@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"io/ioutil"
-	"math"
 	"os"
 	"strings"
 )
@@ -17,29 +16,46 @@ type point struct {
 // Non-empty fields are true.
 type area map[point]bool
 
-func (a area) Score() int {
-	sum := 0
+// Define the area for each level.
+type levelArea map[int]area
 
-	exp := 0
-	for row := 0; row < 5; row++ {
-		for col := 0; col < 5; col++ {
-			if a[point{row, col}] {
-				sum += int(math.Pow(float64(2), float64(exp)))
-			}
-			exp++
-		}
+func (a levelArea) Next() levelArea {
+	b := make(levelArea)
+
+	// Find maximum level
+	maxLevel := findMaximalLevel(a)
+
+	// Compute new values for each of the existing levels.
+	for level := -maxLevel; level <= maxLevel; level++ {
+		// I don't like the call-API (parameters) of next, but this will suffice for now.
+		b[level] = a[level].Next(maxLevel, level, a)
 	}
 
-	return sum
+	// Increase levels by +1 and -1 after computation is done.
+	return b
 }
 
-func (a area) Next() area {
-	b := make(map[point]bool)
+func findMaximalLevel(a levelArea) int {
+	maxLevel := 0
+	for level, _ := range a {
+		if level > maxLevel {
+			maxLevel = level
+		}
+	}
+	return maxLevel
+}
+
+func (a area) Next(maxLevel, level int, levelArea levelArea) area {
+	b := make(area)
+
+	// If we are near the subgrid, we have to consider levels up and below of our level.
 
 	for row := 0; row < 5; row++ {
 		for col := 0; col < 5; col++ {
-			ns := a.Neighbors(row, col)
+			// Only computation of neighbors has changed.
+			ns := a.Neighbors(level, levelArea, row, col)
 
+			// Rules are the same.
 			// Bug
 			if a[point{row, col}] {
 				if ns == 1 {
@@ -81,8 +97,12 @@ func (a area) String() string {
 	return s
 }
 
-func (a area) Neighbors(row int, col int) int {
+func (a area) Neighbors(level int, levelArea levelArea, row int, col int) int {
 	ns := 0
+
+	//if row == 2 && col == 2 {
+	//todo()
+	//}
 
 	if a[point{row - 1, col}] {
 		ns++
@@ -102,21 +122,30 @@ func (a area) Neighbors(row int, col int) int {
 
 func main() {
 	a := load()
-	fmt.Println(a)
+
+	la := make(levelArea)
+	la[0] = a
+
+	for {
+		fmt.Println(la[0])
+		la = la.Next()
+		wait()
+	}
+
 	//fmt.Println(a.Score())
 
-	history := make(map[int]bool)
-	for {
-		a = a.Next()
-		fmt.Println(a)
-		score := a.Score()
-		fmt.Println(score)
-		if history[score] {
-			fmt.Println(score)
-			break
-		}
-		history[score] = true
-	}
+	//history := make(map[int]bool)
+	//for {
+	//	a = a.Next()
+	//	fmt.Println(a)
+	//	score := a.Score()
+	//	fmt.Println(score)
+	//	if history[score] {
+	//		fmt.Println(score)
+	//		break
+	//	}
+	//	history[score] = true
+	//}
 }
 
 func load() area {
@@ -141,4 +170,8 @@ func load() area {
 func wait() {
 	fmt.Print("<ENTER>")
 	bufio.NewReader(os.Stdin).ReadLine()
+}
+
+func todo() {
+	panic("TODO")
 }

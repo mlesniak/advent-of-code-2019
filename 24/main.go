@@ -4,11 +4,28 @@ import (
 	"bufio"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"os"
 	"strings"
 )
 
 type area [][]int
+
+func (a area) Score() int {
+	sum := 0
+
+	exp := 0
+	for _, line := range a {
+		for _, value := range line {
+			if value == 1 {
+				sum += int(math.Pow(float64(2), float64(exp)))
+			}
+			exp++
+		}
+	}
+
+	return sum
+}
 
 func (a area) String() string {
 	s := ""
@@ -31,6 +48,7 @@ func (a area) String() string {
 func main() {
 	a := load()
 	fmt.Println(a)
+	fmt.Println(a.Score())
 }
 
 func load() area {

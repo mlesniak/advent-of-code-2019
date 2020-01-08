@@ -97,16 +97,29 @@ func (a area) String() string {
 	return s
 }
 
+// Handle all special cases separately, do not try to be too clever.
 func (a area) Neighbors(level int, levelArea levelArea, row int, col int) int {
 	ns := 0
 
-	//if row == 2 && col == 2 {
-	//todo()
-	//}
-
-	if a[point{row - 1, col}] {
+	// North
+	nrow := row - 1
+	ncol := col
+	if nrow == 2 && ncol == 2 {
+		// Look into level-1 (if it exists) and collect all values.
+		down, ok := levelArea[level-1]
+		if ok {
+			for dcol := 0; dcol < 5; dcol++ {
+				if down[point{4, dcol}] {
+					ns++
+				}
+			}
+		} else {
+			// We have nothing for this level yet, hence everything is empty and we have no neighbours.
+		}
+	} else if a[point{nrow, ncol}] {
 		ns++
 	}
+
 	if a[point{row + 1, col}] {
 		ns++
 	}

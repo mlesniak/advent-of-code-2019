@@ -8,6 +8,9 @@ Note that this code is **hacky, not polished or refactored in any way**, i.e. it
 you can imagine. Its sole purpose was to solve the puzzles, it should not be used as example for good Go code.
 That means, after I retrieved the correct solution for a puzzle, **I left the source code as it is without any cleanup**.
 
+If you want to see cleaner and better documented Go code, take a look at, e.g. my [port scanner](https://github.com/mlesniak/port-scanner), [poor man's encryption](https://github.com/mlesniak/go-keyz) or [Kafka playground](https://github.com/mlesniak/kafka-with-go). 
+
+
 ![](logo.gif)
 
 | Day | Problem                             | Solution | Topic |

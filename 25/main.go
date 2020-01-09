@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -14,10 +16,24 @@ type channel chan int
 func main() {
 	memory, in, out, stop := load()
 	go func() {
-		// Display drone messages.
-		for len(out) > 0 {
-			ch := <-out
-			fmt.Print(string(ch))
+		reader := bufio.NewReader(os.Stdin)
+		for {
+			// Display drone messages.
+			messageShown := false
+			for !messageShown {
+				for len(out) > 0 {
+					ch := <-out
+					fmt.Print(string(ch))
+					messageShown = true
+				}
+			}
+
+			// Wait for input
+			bs, _, _ := reader.ReadLine()
+			input := string(bs)
+			if len(input) > 0 {
+				in.send(input)
+			}
 		}
 	}()
 	compute(memory, in, out, stop)

@@ -8,7 +8,7 @@ Note that this code is **hacky, not polished or refactored in any way**, i.e. it
 you can imagine. Its sole purpose was to solve the puzzles, it should not be used as example for good Go code.
 That means, after I retrieved the correct solution for a puzzle, **I left the source code as it is without any cleanup**.
 
-![](logo.png)
+![](logo.gif)
 
 | Day | Problem                             | Solution | Topic |
 |-----|-------------------------------------|----------|-------|

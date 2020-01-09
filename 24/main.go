@@ -128,7 +128,7 @@ func (a area) Neighbors(level int, levelArea levelArea, row int, col int) int {
 	nrow := row - 1
 	ncol := col
 	if nrow == 2 && ncol == 2 {
-		// Look into level-1 (if it exists) and collect all values.
+		// Look into level+1 (if it exists) and collect all values.
 		down, levelExists := levelArea[level+1]
 		if levelExists {
 			for dcol := 0; dcol < 5; dcol++ {
@@ -139,6 +139,17 @@ func (a area) Neighbors(level int, levelArea levelArea, row int, col int) int {
 		} else {
 			// We have nothing for this level yet, hence everything is empty and we have no neighbours.
 		}
+	} else if nrow == -1 {
+		// Look into level-1 (if it exists) and collect the single value.
+		up, levelExists := levelArea[level-1]
+		if levelExists {
+			if up[point{1, 2}] {
+				ns++
+			}
+		} else {
+			// We have nothing for this level yet, hence everything is empty and we have no neighbours.
+		}
+
 	} else if a[point{nrow, ncol}] {
 		ns++
 	}
@@ -158,6 +169,17 @@ func (a area) Neighbors(level int, levelArea levelArea, row int, col int) int {
 		} else {
 			// We have nothing for this level yet, hence everything is empty and we have no neighbours.
 		}
+	} else if nrow == 5 {
+		// Look into level-1 (if it exists) and collect the single value.
+		up, levelExists := levelArea[level-1]
+		if levelExists {
+			if up[point{3, 2}] {
+				ns++
+			}
+		} else {
+			// We have nothing for this level yet, hence everything is empty and we have no neighbours.
+		}
+
 	} else if a[point{nrow, ncol}] {
 		ns++
 	}
@@ -173,6 +195,16 @@ func (a area) Neighbors(level int, levelArea levelArea, row int, col int) int {
 				if down[point{drow, 4}] {
 					ns++
 				}
+			}
+		} else {
+			// We have nothing for this level yet, hence everything is empty and we have no neighbours.
+		}
+	} else if ncol == -1 {
+		// Look into level-1 (if it exists) and collect the single value.
+		up, levelExists := levelArea[level-1]
+		if levelExists {
+			if up[point{2, 1}] {
+				ns++
 			}
 		} else {
 			// We have nothing for this level yet, hence everything is empty and we have no neighbours.
@@ -196,6 +228,17 @@ func (a area) Neighbors(level int, levelArea levelArea, row int, col int) int {
 		} else {
 			// We have nothing for this level yet, hence everything is empty and we have no neighbours.
 		}
+	} else if ncol == 5 {
+		// Look into level-1 (if it exists) and collect the single value.
+		up, levelExists := levelArea[level-1]
+		if levelExists {
+			if up[point{2, 3}] {
+				ns++
+			}
+		} else {
+			// We have nothing for this level yet, hence everything is empty and we have no neighbours.
+		}
+
 	} else if a[point{nrow, ncol}] {
 		ns++
 	}

@@ -32,7 +32,8 @@ func main() {
 			bs, _, _ := reader.ReadLine()
 			input := string(bs)
 			if len(input) > 0 {
-				in.send(input)
+				trimmed := strings.Trim(input, " ")
+				in.send(trimmed)
 			}
 		}
 	}()

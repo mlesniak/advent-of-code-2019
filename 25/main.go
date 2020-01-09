@@ -14,10 +14,34 @@ type memory []int
 type channel chan int
 
 func main() {
+	items := []string{
+		"jam",
+		"bowl of rice",
+		"antenna",
+		"manifold",
+		"hypercube",
+		"dehydrated water",
+		"candy cane",
+		"dark matter",
+	}
+
+	// 2147502592
+	//Taking jam
+	//Taking antenna
+	//Taking hypercube
+	//Taking dehydrated water
+	//Taking candy cane
+
 	memory, in, out, stop := load()
 	go func() {
 		reader := bufio.NewReader(os.Stdin)
 		commands := []string{}
+
+		// For brute-forcing weight-lock
+		bruteForce := false
+		bfPosition := 0
+		combinations := make([][]string, 256)
+
 		for {
 			// Display drone messages.
 			messageShown := false
@@ -30,10 +54,47 @@ func main() {
 			}
 
 			// Wait for input
-			bs, _, _ := reader.ReadLine()
-			input := string(bs)
+			var input string
+			if !bruteForce {
+				bs, _, _ := reader.ReadLine()
+				input = string(bs)
+			} else {
+				fmt.Println(strings.Repeat("-", 80))
+				// Check that particular BF Position.
+				// Drop everything.
+				for _, value := range items {
+					in.send("drop " + value)
+				}
+				// Take only the ones in the combination.
+				for _, item := range combinations[bfPosition] {
+					fmt.Println("Taking", item)
+					in.send("take " + item)
+				}
+				bfPosition++
+
+				// Walk west.
+				in.send("west")
+
+				// Examine output
+				wait()
+			}
 
 			// Own commands
+			if input == "brute-force" {
+				bruteForce = true
+				// Create a list of all combinations 2^8 = 256.
+				for i := 0; i < 256; i++ {
+					combinations[i] = []string{}
+					// Check if the specific item is in this combination
+					for pos, item := range items {
+						isSet := i&(1<<pos) > 0
+						if isSet {
+							combinations[i] = append(combinations[i], item)
+						}
+					}
+				}
+				fmt.Println("breakpoint")
+			}
 			if input == "save" {
 				file, _ := os.Create("savegame")
 				for _, value := range commands {
@@ -365,4 +426,9 @@ func (c channel) send(msg string) {
 		c <- int(r)
 	}
 	c <- 10 // Newline
+}
+
+func wait() {
+	fmt.Print("<ENTER>")
+	bufio.NewReader(os.Stdin).ReadLine()
 }

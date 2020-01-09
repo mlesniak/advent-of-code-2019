@@ -24,7 +24,7 @@ func (a levelArea) String() string {
 	maxLevel := findMaximalLevel(a)
 
 	for level := -maxLevel; level <= maxLevel; level++ {
-		s += fmt.Sprintf("Depth:%d\n", level)
+		s += fmt.Sprintf("Depth:%d; bugs=%d\n", level, a[level].countBugs())
 		s += a[level].String() + "\n\n"
 	}
 
@@ -52,6 +52,25 @@ func (a levelArea) Next() levelArea {
 	return b
 }
 
+func (a area) countBugs() int {
+	bug := 0
+	for _, isBug := range a {
+		if isBug {
+			bug++
+		}
+	}
+	return bug
+}
+
+func (a levelArea) countBugs() int {
+	bugs := 0
+	for _, m := range a {
+		bs := m.countBugs()
+		bugs += bs
+	}
+	return bugs
+}
+
 func findMaximalLevel(a levelArea) int {
 	maxLevel := 0
 	for level, _ := range a {
@@ -68,6 +87,11 @@ func (a area) Next(level int, levelArea levelArea) area {
 	// If we are near the subgrid, we have to consider levels below our own level.
 	for row := 0; row < 5; row++ {
 		for col := 0; col < 5; col++ {
+			// Ignore middle.
+			if row == 2 && col == 2 {
+				continue
+			}
+
 			// Only computation of neighbors has changed.
 			ns := a.Neighbors(level, levelArea, row, col)
 
@@ -121,8 +145,6 @@ func (a area) String() string {
 // Handle all special cases separately, do not try to be too clever.
 func (a area) Neighbors(level int, levelArea levelArea, row int, col int) int {
 	ns := 0
-
-	// TODO Not considered: looking a level up (currently only below)
 
 	// North
 	nrow := row - 1
@@ -247,24 +269,20 @@ func (a area) Neighbors(level int, levelArea levelArea, row int, col int) int {
 }
 
 func main() {
-	a := load()
+	maxMinutes := 200
 
+	a := load()
 	la := make(levelArea)
 	la[0] = a
-
-	i := 0
-	for {
-		fmt.Println(la)
+	for minute := 0; minute < maxMinutes; minute++ {
+		fmt.Println("--- Minute", minute)
 		la = la.Next()
-		i++
-		//if i > 1 {
-		//	break
-		//}
-		wait()
 	}
+	fmt.Println(la.countBugs())
+}
 
+func part1() {
 	//fmt.Println(a.Score())
-
 	//history := make(map[int]bool)
 	//for {
 	//	a = a.Next()

@@ -37,3 +37,5 @@ That means, after I retrieved the correct solution for a puzzle, **I left the so
 | 23   | [Category Six](https://adventofcode.com/2019/day/23) | [23](23) | Network simulation with 50 CPUs |
 | 24   | [Planet of Discord](https://adventofcode.com/2019/day/24) | [24](24) | Recursive cellular automata |
 | 25   | [Cryostasis](https://adventofcode.com/2019/day/25) | [25](25) | Brute-Force adventure playing |
+
+![](stats.png)

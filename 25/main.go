@@ -17,6 +17,7 @@ func main() {
 	memory, in, out, stop := load()
 	go func() {
 		reader := bufio.NewReader(os.Stdin)
+		commands := []string{}
 		for {
 			// Display drone messages.
 			messageShown := false
@@ -31,9 +32,49 @@ func main() {
 			// Wait for input
 			bs, _, _ := reader.ReadLine()
 			input := string(bs)
+
+			// Own commands
+			if input == "save" {
+				file, _ := os.Create("savegame")
+				for _, value := range commands {
+					_, _ = file.WriteString(value + "\n")
+				}
+				_ = file.Close()
+				fmt.Println("SAVED")
+			}
+			if input == "load" {
+				// NOTE: Will only work at the beginning
+				file, _ := os.Open("savegame")
+				bs, _ := ioutil.ReadAll(file)
+				inputs := strings.Split(string(bs), "\n") // Use scanner instead?
+				for _, command := range inputs {
+					if command != "save" {
+						in.send(command)
+					}
+				}
+				commands = inputs
+				file.Close()
+				fmt.Println("LOADED")
+			}
+
+			parts := strings.Split(input, " ")
+			switch parts[0] {
+			case "n":
+				input = "north"
+			case "s":
+				input = "south"
+			case "w":
+				input = "west"
+			case "e":
+				input = "east"
+			case "t":
+				input = "take " + strings.Join(parts[1:], " ")
+			case "d":
+				input = "drop " + strings.Join(parts[1:], " ")
+			}
 			if len(input) > 0 {
-				trimmed := strings.Trim(input, " ")
-				in.send(trimmed)
+				in.send(input)
+				commands = append(commands, input)
 			}
 		}
 	}()
@@ -318,7 +359,8 @@ func load() (memory, channel, channel, *bool) {
 }
 
 func (c channel) send(msg string) {
-	for i := 0; i < len(msg); i++ {
+	trimmed := strings.Trim(msg, " ")
+	for i := 0; i < len(trimmed); i++ {
 		r := msg[i]
 		c <- int(r)
 	}

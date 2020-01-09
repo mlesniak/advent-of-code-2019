@@ -1,10 +1,14 @@
 # Overview
 
 My solutions written in [Golang](http://golang.org) for [Advent of Code 2019](https://adventofcode.com/2019).
-Note that this code is **hacky, not polished or refactored in any way** and its sole purpose it to solve the puzzles.
-After I have the correct solution, I leave the source code as it is, ... to clean it up ... someday ;-).
 
-![](logo.jpg)
+## Disclaimer
+
+Note that this code is **hacky, not polished or refactored in any way**, i.e. it is probably the worst spaghetti code
+you can imagine. Its sole purpose was to solve the puzzles, it should not be used as example for good Go code.
+That means, after I retrieved the correct solution for a puzzle, **I left the source code as it is without any cleanup**.
+
+![](logo.png)
 
 | Day | Problem                             | Solution | Topic |
 |-----|-------------------------------------|----------|-------|
@@ -29,3 +33,7 @@ After I have the correct solution, I leave the source code as it is, ... to clea
 | 19   | [Tractor Beam](https://adventofcode.com/2019/day/19) | [19](19) | Array arithmetic |
 | 20   | [Donut Maze](https://adventofcode.com/2019/day/20) | [20](20) | Backtracking, Path finding, Input parsing |
 | 21   | [Springdroid Adventure](https://adventofcode.com/2019/day/21) | [21](21) | Boolean expression solving |
+| 22   | [Slam Shuffle](https://adventofcode.com/2019/day/22) | [22](22) | Number theory |
+| 23   | [Category Six](https://adventofcode.com/2019/day/23) | [23](23) | Network simulation with 50 CPUs |
+| 24   | [Planet of Discord](https://adventofcode.com/2019/day/24) | [24](24) | Recursive cellular automata |
+| 25   | [Cryostasis](https://adventofcode.com/2019/day/25) | [25](25) | Brute-Force adventure playing |

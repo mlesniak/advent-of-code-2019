@@ -48,7 +48,7 @@ func findMaximalLevel(a levelArea) int {
 func (a area) Next(maxLevel, level int, levelArea levelArea) area {
 	b := make(area)
 
-	// If we are near the subgrid, we have to consider levels up and below of our level.
+	// If we are near the subgrid, we have to consider levels below our own level.
 
 	for row := 0; row < 5; row++ {
 		for col := 0; col < 5; col++ {
@@ -106,8 +106,8 @@ func (a area) Neighbors(level int, levelArea levelArea, row int, col int) int {
 	ncol := col
 	if nrow == 2 && ncol == 2 {
 		// Look into level-1 (if it exists) and collect all values.
-		down, ok := levelArea[level-1]
-		if ok {
+		down, levelExists := levelArea[level-1]
+		if levelExists {
 			for dcol := 0; dcol < 5; dcol++ {
 				if down[point{4, dcol}] {
 					ns++
@@ -120,13 +120,60 @@ func (a area) Neighbors(level int, levelArea levelArea, row int, col int) int {
 		ns++
 	}
 
-	if a[point{row + 1, col}] {
+	// South
+	nrow = row + 1
+	ncol = col
+	if nrow == 2 && ncol == 2 {
+		// Look into level-1 (if it exists) and collect all values.
+		down, levelExists := levelArea[level-1]
+		if levelExists {
+			for dcol := 0; dcol < 5; dcol++ {
+				if down[point{4, dcol}] {
+					ns++
+				}
+			}
+		} else {
+			// We have nothing for this level yet, hence everything is empty and we have no neighbours.
+		}
+	} else if a[point{nrow, ncol}] {
 		ns++
 	}
-	if a[point{row, col - 1}] {
+
+	// East
+	nrow = row
+	ncol = col - 1
+	if nrow == 2 && ncol == 2 {
+		// Look into level-1 (if it exists) and collect all values.
+		down, levelExists := levelArea[level-1]
+		if levelExists {
+			for dcol := 0; dcol < 5; dcol++ {
+				if down[point{4, dcol}] {
+					ns++
+				}
+			}
+		} else {
+			// We have nothing for this level yet, hence everything is empty and we have no neighbours.
+		}
+	} else if a[point{nrow, ncol}] {
 		ns++
 	}
-	if a[point{row, col + 1}] {
+
+	// West
+	nrow = row
+	ncol = col + 1
+	if nrow == 2 && ncol == 2 {
+		// Look into level-1 (if it exists) and collect all values.
+		down, levelExists := levelArea[level-1]
+		if levelExists {
+			for dcol := 0; dcol < 5; dcol++ {
+				if down[point{4, dcol}] {
+					ns++
+				}
+			}
+		} else {
+			// We have nothing for this level yet, hence everything is empty and we have no neighbours.
+		}
+	} else if a[point{nrow, ncol}] {
 		ns++
 	}
 
